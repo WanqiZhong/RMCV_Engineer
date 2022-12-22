@@ -18,29 +18,24 @@ void Detector::Join()
 
 void Detector::Detect_Run()
 {
-    Mat img;
-    while(1)
+    cv:Mat img;
+    umt::Subscriber<cv::Mat> pub("channel1");
+    umt::Publisher<MINE_POSITION_MSG> mine_sub("anchor_point_data");
+    while((mode=param.get_run_mode())!=HALT)
     {
-        img = ImgUpdate(img);
-        if(!img.empty())
-        {
-            PreProcessMine(img);
-            FindSide(img);
+        try{
+            img = pub.pop();
         }
-        else
-        {
-            logger.info("Detector img is empty");
+        catch(const HaltEvent&){
+            break;
         }
-        // this_thread::sleep_for(chrono::milliseconds(10));
+        PreProcessMine(img);
+        FindSide(img);
+        MINE_POSITION_MSG msg;
+        msg.goal = anchor_point;
+        msg.push();
     }
 }
-
-Mat Detector::ImgUpdate()
-{
-    Mat img;
-    return img;
-}
-
 
 /// @brief process the RGB image to get the contours(include inRange, morphologyEx, GaussianBlur, Canny, findContours)
 /// @param img current RGB frame image
@@ -185,7 +180,9 @@ void DemarMine::FindSide(Mat &img)
     int bound_hei = 0;
     vector<Rect> rect_res;
     cout<<"whole_rect.size():"<<whole_rect.size()<<endl;
+    anchor_point.clear();
     for(int i = 0; i < whole_rect.size(); ++i){
+        vector<Point> anchor_point_single;
         vector<vector<int>> decision_tree = vector<vector<int>>(4,vector<int>(3,0));
         vector<vector<Rect>> rect_tree = vector<vector<Rect>>(4,vector<Rect>(3));
         lower_bound_wid = whole_rect[i].width*0.4;
@@ -293,6 +290,11 @@ void DemarMine::FindSide(Mat &img)
                 if(k==0)
                 {
                     center = Point((whole_rect[i].x+rect_tree[k][1].x+rect_tree[k][1].width)/2,(whole_rect[i].y+whole_rect[i].height+rect_tree[k][1].y)/2);
+                    anchor_point_single.push_back(Point(rect_tree[k][0].x,rect_tree[k][0].y));
+                    anchor_point_single.push_back(Point(rect_tree[k][1].x+rect_tree[k][1].width,rect_tree[k][1].y));
+                    anchor_point_single.push_back(Point(rect_tree[k][2].x+rect_tree[k][2].width,rect_tree[k][2].y+rect_tree[k][2].height));
+                    anchor_point_single.push_back(Point(whole_rect[i].x,whole_rect[i].y+whole_rect[i].height));
+                    anchor_point.push_back(anchor_point_single);
                     line(img, Point(whole_rect[i].x,whole_rect[i].y+whole_rect[i].height), Point(rect_tree[k][0].x,rect_tree[k][0].y), Scalar(255,0,0), 4, 8, 0);
                     line(img, Point(rect_tree[k][0].x,rect_tree[k][0].y), Point(rect_tree[k][1].x+rect_tree[k][1].width,rect_tree[k][1].y), Scalar(255,0,0), 4, 8, 0);
                     line(img, Point(rect_tree[k][1].x+rect_tree[k][1].width,rect_tree[k][1].y), Point(rect_tree[k][2].x+rect_tree[k][2].width,rect_tree[k][2].y+rect_tree[k][2].height), Scalar(255,0,0), 4, 8, 0);
@@ -301,6 +303,11 @@ void DemarMine::FindSide(Mat &img)
                 }
                 else if(k==1)
                 {
+                    anchor_point_single.push_back(Point(rect_tree[k][1].x,rect_tree[k][1].y));
+                    anchor_point_single.push_back(Point(rect_tree[k][0].x+rect_tree[k][0].width,rect_tree[k][0].y));
+                    anchor_point_single.push_back(Point(whole_rect[i].x+whole_rect[i].width,whole_rect[i].y+whole_rect[i].height));
+                    anchor_point_single.push_back(Point(rect_tree[k][2].x,rect_tree[k][2].y+rect_tree[k][2].height));
+                    anchor_point.push_back(anchor_point_single);
                     line(img, Point(whole_rect[i].x+whole_rect[i].width,whole_rect[i].y+whole_rect[i].height), Point(rect_tree[k][0].x+rect_tree[k][0].width,rect_tree[k][0].y), Scalar(255,0,0), 4, 8, 0);
                     line(img, Point(rect_tree[k][0].x+rect_tree[k][0].width,rect_tree[k][0].y), Point(rect_tree[k][1].x,rect_tree[k][1].y), Scalar(255,0,0), 4, 8, 0);
                     line(img, Point(rect_tree[k][1].x,rect_tree[k][1].y), Point(rect_tree[k][2].x,rect_tree[k][2].y+rect_tree[k][2].height), Scalar(255,0,0), 4, 8, 0);
@@ -309,6 +316,11 @@ void DemarMine::FindSide(Mat &img)
                 }
                 else if(k==2)
                 {
+                    anchor_point_single.push_back(Point(rect_tree[k][2].x,rect_tree[k][2].y));
+                    anchor_point_single.push_back(Point(whole_rect[i].x+whole_rect[i].width,whole_rect[i].y));
+                    anchor_point_single.push_back(Point(rect_tree[k][0].x+rect_tree[k][0].width,rect_tree[k][0].y+rect_tree[k][0].height));
+                    anchor_point_single.push_back(Point(rect_tree[k][1].x,rect_tree[k][1].y+rect_tree[k][1].height));
+                    anchor_point.push_back(anchor_point_single);
                     line(img, Point(whole_rect[i].x+whole_rect[i].width,whole_rect[i].y), Point(rect_tree[k][0].x+rect_tree[k][0].width,rect_tree[k][0].y+rect_tree[k][0].height), Scalar(255,0,0), 4, 8, 0);
                     line(img, Point(rect_tree[k][0].x+rect_tree[k][0].width,rect_tree[k][0].y+rect_tree[k][0].height), Point(rect_tree[k][1].x,rect_tree[k][1].y+rect_tree[k][1].height), Scalar(255,0,0), 4, 8, 0);
                     line(img, Point(rect_tree[k][1].x,rect_tree[k][1].y+rect_tree[k][1].height), Point(rect_tree[k][2].x,rect_tree[k][2].y), Scalar(255,0,0), 4, 8, 0);
@@ -317,6 +329,11 @@ void DemarMine::FindSide(Mat &img)
                 }
                 else if(k==3)
                 {
+                    anchor_point_single.push_back(Point(whole_rect[i].x,whole_rect[i].y));
+                    anchor_point_single.push_back(Point(rect_tree[k][2].x+rect_tree[k][2].width,rect_tree[k][2].y));
+                    anchor_point_single.push_back(Point(rect_tree[k][1].x+rect_tree[k][1].width,rect_tree[k][1].y+rect_tree[k][1].height));
+                    anchor_point_single.push_back(Point(rect_tree[k][0].x,rect_tree[k][0].y+rect_tree[k][0].height));
+                    anchor_point.push_back(anchor_point_single);
                     line(img, Point(whole_rect[i].x,whole_rect[i].y), Point(rect_tree[k][0].x,rect_tree[k][0].y+rect_tree[k][0].height), Scalar(255,0,0), 4, 8, 0);
                     line(img, Point(rect_tree[k][0].x,rect_tree[k][0].y+rect_tree[k][0].height), Point(rect_tree[k][1].x+rect_tree[k][1].width,rect_tree[k][1].y+rect_tree[k][1].height), Scalar(255,0,0), 4, 8, 0);
                     line(img, Point(rect_tree[k][1].x+rect_tree[k][1].width,rect_tree[k][1].y+rect_tree[k][1].height), Point(rect_tree[k][2].x+rect_tree[k][2].width,rect_tree[k][2].y), Scalar(255,0,0), 4, 8, 0);

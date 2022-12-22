@@ -38,6 +38,7 @@ class Detector
     private:
         bool mine_flag;
         vector<vector<Point>> contours;
+        vector<vector<Point>> anchor_point;
         vector<Vec4i> hierarchy;
         vector<Rect> whole_rect;
         vector<Rect> half_rect;

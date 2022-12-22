@@ -19,14 +19,23 @@ void Calculator::Join()
 void Calculator::Calculate_Run()
 {
     CalculateInit();
-    while(1)
+    umt::Subscriber<MINE_POSITION_MSG> mine_sub("anchor_point_data");
+    umt::Publisher<ANGLE_DATA_MSG> angle_pub("angle_data");
+    while((mode=param.get_run_mode())!=HALT)
     {
+        try{
+            MINE_POSITION_MSG msg = mine_sub.pop();
+            anchor_point = msg.goal;
+        }
+        catch(const HaltEvent&){
+            break;
+        }
         CalculateMinePnp();
-        // this_thread::sleep_for(chrono::milliseconds(10));
+        ANGLE_DATA_MSG angle_msg;
+        angle_msg.ypr = ypr;
+        angle_pub.push(angle_msg);
     }
 }
-
-
 
 
 void Calculator::CalculateInit()
@@ -71,31 +80,43 @@ void Calculator::CalculateMinePnp()
     Mat_<float> rotMat(3, 3);
     Eigen::Matrix<double, 3, 3> R;
     Eigen::Matrix<double, 3, 1> T;
-
-    for(int i = 0; i < MineCorner.size(); i++)
+    for(int i = 0; i < anchor_point.size(); i++)
     {
         for(int j = 0; j < 4; j++)
         {
-            Mine2D[j] = MineCorner[i][j];
+            Mine2D[j] = anchor_point[i][j];
         }
         solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec);
         Rodrigues(rvec, rotMat);  
         //由于solvePnP返回的是旋转向量，故用罗德里格斯变换变成旋转矩阵
         cv::cv2eigen(rotMat, R);
         cv::cv2eigen(tvec, T);
-        Eigen::Vector3d eulerAngle = R.eulerAngles(2, 1, 0);
+        // Eigen::Vector3d eulerAngle = R.eulerAngles(2, 1, 0);
+        Eigen::Vector3d n = R.col(0);
+        Eigen::Vector3d o = R.col(1);
+        Eigen::Vector3d a = R.col(2);
+
+        double y = atan2(n(1), n(0));
+        double p = atan2(-n(2), n(0) * cos(y) + n(1) * sin(y));
+        double r = atan2(a(0) * sin(y) - a(1) * cos(y), -o(0) * sin(y) + o(1) * cos(y));
+        ypr(0) = y;
+        ypr(1) = p;
+        ypr(2) = r;
+
+        ypr = ypr / M_PI * 180.0;
+
         cout << "rvec: " << rvec << endl;
         cout << "tvec: " << tvec << endl;
-        cout << "eulerAngle: " << eulerAngle << endl;
+        cout << "eulerAngle: " << ypr << endl;
     }
-    // for(int i=0;i<5;i++)
-    // {
-    //     //Pc=R*Po+T
-    //     Eigen::Matrix<double,3,1> p0;
-    //     p0<<pw_result[i][0],pw_result[i][1],pw_result[i][2];
-    //     pb.push_back( pc_to_pb(R*p0+T) );
-    // }
-    // pb.push_back( pc_to_pb(T) );
-    // return pb;
+        // for(int i=0;i<5;i++)
+        // {
+        //     //Pc=R*Po+T
+        //     Eigen::Matrix<double,3,1> p0;
+        //     p0<<pw_result[i][0],pw_result[i][1],pw_result[i][2];
+        //     pb.push_back( pc_to_pb(R*p0+T) );
+        // }
+        // pb.push_back( pc_to_pb(T) );
+        // return pb;
 }
 #endif

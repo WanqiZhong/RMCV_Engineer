@@ -31,9 +31,10 @@ const int HALF_LENGTH = 75;
 class Calculator
 {
     private: 
-        vector<vector<Point2f>> MineCorner;
+        vector<vector<Point>> anchor_point;
         Mat CameraMatrix;
         Mat DistCoeffs;
+        Eigen::Vector3d ypr(3);
         thread Calculator_Thread;
     public:
         Calculator(){};
