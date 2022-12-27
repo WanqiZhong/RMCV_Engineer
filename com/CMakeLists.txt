@@ -1,13 +1,15 @@
-cmake_minimum_required(VERSION 3.7)
-project(Engineer)
-set(CMAKE_CXX_STANDARD 17)
-file(GLOB DICT ./*.cpp ./*/*.cpp ./*/*/*.cpp ./*/*/*/*.cpp )
-add_compile_options(-g3)
-include_directories(${PROJECT_SOURCE_DIR}/com/include)
-include_directories(${PROJECT_SOURCE_DIR}/com/include/serial)
-include_directories(${PROJECT_SOURCE_DIR}/rmconfig)
-include_directories(${PROJECT_SOURCE_DIR})
-find_package(OpenCV REQUIRED)
-link_directories(${OpenCV_LIBRARY_DIRS})
-add_executable(Engineer ${DICT})
-target_link_libraries(Engineer ${OpenCV_LIBS} -lpthread)
+find_package(Threads REQUIRED)
+set(link Threads::Threads ${link})
+set(link args ${link})
+set(link data ${link})
+set(link log ${link})
+
+set(link utils ${link})
+
+file(GLOB_RECURSE src
+        "src/**"
+        )
+
+add_library(com ${src})
+target_include_directories(com PUBLIC include)
+target_link_libraries(com ${link})

@@ -1,3 +1,4 @@
+file(GLOB detector_src "src/detector.cpp")
 # OpenCV
 find_package(OpenCV REQUIRED)
 set(link ${OpenCV_LIBS} ${link})
@@ -11,5 +12,4 @@ set(link data ${link})
 set(link utils ${link})
 
 add_library(detect ${detector_src})
-target_include_directories(detect PUBLIC include ${include})
 target_link_libraries(detect ${link})

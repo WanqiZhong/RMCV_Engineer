@@ -1,0 +1,10 @@
+file(GLOB_RECURSE src "src/**")
+find_package(Threads REQUIRED)
+set(link Threads::Threads ${link})
+set(link ${OpenCV_LIBS} ${link})
+set(link log ${link})
+set(link data ${link})
+set(link utils ${link})
+
+add_library(sensor ${src})
+target_link_libraries(sensor ${link})
