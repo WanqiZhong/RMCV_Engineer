@@ -1,5 +1,18 @@
 {
     "files.associations": {
-        "queue": "cpp"
+        "queue": "cpp",
+        "*.tcc": "cpp",
+        "complex": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
+        "exception": "cpp",
+        "fstream": "cpp",
+        "limits": "cpp",
+        "sstream": "cpp",
+        "functional": "cpp",
+        "utility": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp"
     }
 }

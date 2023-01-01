@@ -22,45 +22,86 @@ using namespace std;
 using namespace cv;
 
 /* 金矿HSV参数 */
-int hmin = 0;
-int hmax = 255;
-int smin = 37;
-int smax = 255;
-int vmin = 37;
-int vmax = 255;
+int gold_hmin = 0;
+int gold_hmax = 255;
+int gold_smin = 37;
+int gold_smax = 255;
+int gold_vmin = 37;
+int gold_vmax = 255;
 
 /* 图像增强参数 */
 int contrast = 37;
 int bright = 18;
 
+#define GoldMode 0
+#define SilverMode 1
+#define ChangeSiteMode 2
+
 class Detector
 {
     private:
+        uint8_t mode=0;
         bool mine_flag;
-        vector<vector<Point>> contours;
+        int side_num;
+
+        vector<vector<Point>> gold_mine_contours;  //金矿轮廓 
+        vector<Vec4i> gold_mine_hierarchy; //金矿轮廓层次
+        vector<Rect> gold_mine_whole_rect; //金矿标识角
+        vector<Rect> gold_mine_half_rect; //金矿标识半角
         vector<vector<Point>> anchor_point;
-        vector<Vec4i> hierarchy;
-        vector<Rect> whole_rect;
-        vector<Rect> half_rect;
+
+        vector<vector<Point>> logo_R; //R_logo轮廓
+        vector<vector<Point>> gold_mine_side;  //金矿分面标识
+        
+        vector<Rect> silver_mine_rect; //银矿外侧轮廓
+        vector<vector<Point>> silver_mine_contours;  //银矿标识
+
+        
         thread Detector_thread;
     public:
         Detector(){};
         ~Detector(){};
         
+
+        /* 主进程 */
         void Run();
         void Join();
 
-        void Detect_Run();
+        /* 子进程 */
+        void GoldMineDetect_Run(Mat &img);
+        void GoldMineDetect_Run2(Mat &img);
+        void SilverMineDetect_Run(Mat &img);
 
+
+        void Detect_Run();
         Mat ImgUpdate();
-        /* 寻找金矿 */
-        void PreProcessMine(Mat& img);
-        void FindSide(Mat &img);
 
         /* 图像处理分别为彩色和灰度 */
-        void ImgProcess(const Mat& img,Scalar lower,Scalar upper);
-        void ImgProcess(const Mat& img,int thresh,int maxval,int type);
-        void ImgEnhance(Mat &img);
+        /* 用于金矿 */
+        void process_gold_mine(const Mat& img,Scalar lower,Scalar upper);
+        void process_gold_mine(const Mat& img,int thresh,int maxval,int type);
+        void enhance_img(Mat &img);
+
+        /* 寻找金矿与分面识别 方案1 */
+        void find_gold_mine(Mat &img);
+        void get_gold_mine(Mat &img);
+
+        /* 寻找金矿与分面识别 方案2 */
+        void process_img_corner(Mat &img, int thresh, int maxual);
+        vector<vector<Point>> find_R(int side_number);
+        vector<int> sort_length(Point p);
+        vector<vector<Point>> store_side(vector<vector<Point>> logo_R,Mat img);
+        void draw_side(Mat img, vector<Point> side);
+
+
+        /* 银矿识别 */
+        void find_white_mineral(Mat &img, vector<Rect> &side_rect);
+        Mat get_white_mineral(Mat &img, Rect rec);
+        void process_white_corner(Mat &img, int thresh, int maxual,vector<vector<Point>> &corner_contour);
+        void get_white_corner(Mat &img, vector<vector<Point>> corner_contour);
+
+
 };
+
 
 #endif

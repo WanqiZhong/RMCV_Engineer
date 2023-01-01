@@ -3,7 +3,6 @@
 #ifndef ENGCV_2023_DATA_HPP_
 #define ENGCV_2023_DATA_HPP_
 #include <opencv2/opencv.hpp>
-#include <spdlog/fmt/fmt.h>
 #include <vector>
 #define UNKNOWN_ID (233)
 
