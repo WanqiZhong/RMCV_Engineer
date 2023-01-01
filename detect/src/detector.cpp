@@ -61,7 +61,7 @@ void Detector::GoldMineDetect_Run(Mat &img)
 
 void Detector::GoldMineDetect_Run2(Mat &img)
 {
-    process_img_corner(img, thresh, maxual);
+    process_img_corner(img, gold_thresh, gold_maxual);
     logo_R = find_R(side_num);
     gold_mine_side = store_side(logo_R, img);
     for (int i = 0; i < side_num; i++)

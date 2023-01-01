@@ -29,6 +29,9 @@ int gold_smax = 255;
 int gold_vmin = 37;
 int gold_vmax = 255;
 
+int gold_thresh = 70;
+int gold_maxval = 255;
+
 /* 图像增强参数 */
 int contrast = 37;
 int bright = 18;
