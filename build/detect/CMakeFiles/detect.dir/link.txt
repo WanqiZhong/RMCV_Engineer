@@ -1,0 +1,2 @@
+/usr/bin/ar qc libdetect.a CMakeFiles/detect.dir/src/detector.cpp.o
+/usr/bin/ranlib libdetect.a

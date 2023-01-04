@@ -1,0 +1,2 @@
+add_library(watchdog INTERFACE)
+target_include_directories(watchdog INTERFACE include)
