@@ -19,9 +19,11 @@ add_definitions(-DSPDLOG_FMT_EXTERNAL)
 # set config path
 add_definitions(-DROOT="${ROOT}")
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED PATHS /usr/include/opencv4)
 link_directories(${OpenCV_LIBRARY_DIRS})
-find_package(Eigen3 3.3 REQUIRED)
+find_package(Eigen3 REQUIRED)
+add_compile_options(-g) 
+# add_link_options(-fsanitize=address)
 
 add_executable(run main.cpp)
 
@@ -37,6 +39,7 @@ target_link_libraries(run sensor)
 add_subdirectory(detect)
 target_link_libraries(run detect)
 
-
+add_subdirectory(calculate)
+target_link_libraries(run calculate)
 
 

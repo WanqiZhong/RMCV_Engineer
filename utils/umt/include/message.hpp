@@ -8,6 +8,7 @@
 #include <queue>
 #include <iostream>
 #include <condition_variable>
+#include <args.hpp>
 
 namespace umt{
     class MessageError : public std::runtime_error {
@@ -59,6 +60,11 @@ namespace umt{
         //
         ~Subscriber() {reset();}
 
+
+        bool empty() const {
+            return fifo_.empty();
+        }
+
         void reset(){
             if(!fifo_.empty()) fifo_ = std::queue<T>();                  //if fifo_ not empty,create an empty one
             if(!ptr_msg_) return;                                        
@@ -101,11 +107,13 @@ namespace umt{
                 bool status = cv_.wait_for(lock, std::chrono::seconds(2), [this]() {
                     return !fifo_.empty();
                 });
-                if(!status) {
-                    return cv::Mat{};
+                if(status) {
+                    break;
                 } else {
-		    break;
-		}
+                    if(param.get_run_mode() == HALT) {
+                        throw HaltEvent();
+                    }
+                }
             }
             
             // todo:
@@ -117,6 +125,25 @@ namespace umt{
             T temp = std::move(fifo_.front());
             fifo_.pop();
             return temp;
+        }
+        
+        std::pair<bool, T> try_pop(){
+            if(!ptr_msg_) {
+                throw MessageError_Nomsg();
+            }
+
+            std::unique_lock<std::mutex> lock(mtx_);
+            bool status = cv_.wait_for(lock, std::chrono::seconds(2), [this]() {
+                return !fifo_.empty();
+            });
+
+            if(!status) {
+                return std::make_pair(false, T());
+            }
+
+            T temp = std::move(fifo_.front());
+            fifo_.pop();
+            return std::make_pair(true, std::move(temp));
         }
 
         std::string get_msg_name() const{

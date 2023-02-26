@@ -18,9 +18,7 @@ void Sensor::Join()
     #else
     cout<<"Waiting for [Sensor]"<<endl;
     #endif
-
     Sensor_thread.join();
-
     #ifndef Laptop
     logger.sinfo("[Sensor] Join");
     #else
@@ -30,11 +28,15 @@ void Sensor::Join()
 
 void Sensor::Sensor_Run()
 {
-    cv::VideoCapture cap(0);
-    umt::Publisher<cv::Mat> pub("channel1");
-    cout<<"Camera is opened"<<endl;
+    // cout<<"Try open1"<<endl;
+    // // cv::VideoCapture cap(0);
+    // cout<<"Try open2"<<endl;
+    VideoCapture cap(0);
+    Mat img;
+    umt::Publisher<cv::Mat> pub("channel0");
     while(mode!=HALT) //((mode=param.get_run_mode())!=HALT)
     {
+        // if(false)
         if(!cap.isOpened())
         {
             #ifndef Laptop
@@ -48,13 +50,17 @@ void Sensor::Sensor_Run()
         }
         else
         {
-            cout<<"Camera is opened!"<<endl;
+            // cout<<"Camera is opened!"<<endl;
             cap>>img;
             if(!img.empty())
             {
-                imshow("push_img",img);
+                // imshow("push_img",img);
                 waitKey(1);
                 pub.push(img.clone());
+            }
+            else
+            {
+                cout<<"empty img"<<endl;
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(int(1000. /30)));
@@ -63,3 +69,47 @@ void Sensor::Sensor_Run()
     cv::destroyAllWindows();
     return;
 }
+
+
+// void Sensor::Sensor_Run()
+// {
+//     // cout<<"Try open1"<<endl;
+//     // // cv::VideoCapture cap(0);
+//     // cout<<"Try open2"<<endl;
+//     Mat img = imread("../mine.jpg");
+//     umt::Publisher<cv::Mat> pub("channel0");
+//     while(mode!=HALT) //((mode=param.get_run_mode())!=HALT)
+//     {
+//         if(false)
+//         // if(!cap.isOpened())
+//         {
+//             #ifndef Laptop
+//             logger.error("Camera is not opened");
+//             #else
+//             cout<<"Camera is not opened"<<endl;
+//             #endif
+//             img = Mat::zeros(480, 800, CV_8UC1);
+//             pub.push(img.clone());
+
+//         }
+//         else
+//         {
+//             // cout<<"Camera is opened!"<<endl;
+//             // cap>>img;
+//             if(!img.empty())
+//             {
+//                 // imshow("push_img",img);
+//                 waitKey(1);
+//                 pub.push(img.clone());
+//             }
+//             else
+//             {
+//                 cout<<"empty img"<<endl;
+//             }
+//         }
+//         std::this_thread::sleep_for(std::chrono::milliseconds(int(1000. /30)));
+//     }
+//     // cap.release();
+//     cv::destroyAllWindows();
+//     return;
+// }
