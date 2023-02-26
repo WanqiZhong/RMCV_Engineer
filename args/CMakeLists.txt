@@ -1,6 +1,6 @@
 find_package(spdlog REQUIRED)
 find_package(toml11 REQUIRED)
-
+find_package(Eigen3 REQUIRED)
 file(GLOB_RECURSE src
     "src/**"
 )

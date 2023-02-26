@@ -13,6 +13,8 @@
 #include<opencv2/highgui.hpp>
 #include<algorithm>
 #include<Eigen/Core>
+#include <Eigen/Dense>
+#include <opencv2/core/eigen.hpp>
 #include "data.hpp"
 #include "umt.hpp"
 #include <thread>
@@ -20,7 +22,6 @@
 #include <array>
 #include <string>
 #include <cstring>
-#include "log.hpp"
 
 using namespace std;
 using namespace cv;
@@ -28,14 +29,22 @@ using namespace cv;
 const int LENGTH = 150;
 const int HALF_LENGTH = 75;
 
+#define HALT -1
+#define GoldMode 0
+#define SilverMode 1
+#define ChangeSiteMode 2
+
+#define Laptop
+
 class Calculator
 {
     private: 
+        uint8_t mode=0;
         vector<vector<Point>> anchor_point;
         Mat CameraMatrix;
         Mat DistCoeffs;
-        Eigen::Vector3d ypr(3);
-        thread Calculator_Thread;
+        Eigen::Vector3d ypr;
+        thread Calculator_thread;
     public:
         Calculator(){};
         ~Calculator(){};

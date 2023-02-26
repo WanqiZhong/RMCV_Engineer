@@ -1,19 +1,29 @@
 #include "calculate.hpp"
 
-Calculator::Calculator(){};
-Calculator::~Calculator(){};
-
 void Calculator::Run()
 {
+    #ifndef Laptop
     logger.info("Calculator Run");
+    #else
+    cout<<"Calculator Run"<<endl;
+    #endif
     Calculator_thread = thread(&Calculator::Calculate_Run,this);
 }
 
 void Calculator::Join()
 {
+    #ifndef Laptop
     logger.info("Waiting for [Calculator]");
+    #else
+    cout<<"Waiting for [Calculator]"<<endl;
+    #endif
     Calculator_thread.join();
+    #ifndef Laptop
     logger.sinfo("[Calculator] joined");
+    #else
+    cout<<"[Calculator] joined"<<endl;
+    #endif
+
 }
 
 void Calculator::Calculate_Run()
@@ -21,18 +31,22 @@ void Calculator::Calculate_Run()
     CalculateInit();
     umt::Subscriber<MINE_POSITION_MSG> mine_sub("anchor_point_data");
     umt::Publisher<ANGLE_DATA_MSG> angle_pub("angle_data");
-    while((mode=param.get_run_mode())!=HALT)
+    while(mode!=HALT)
     {
         try{
             MINE_POSITION_MSG msg = mine_sub.pop();
             anchor_point = msg.goal;
+            cout<<"Reiceve anchor_point:"<<endl;
+            cout<<anchor_point[0]<<endl;
         }
         catch(const HaltEvent&){
+            cout<<"Catch HaltEvent"<<endl;
             break;
         }
         CalculateMinePnp();
         ANGLE_DATA_MSG angle_msg;
-        angle_msg.ypr = ypr;
+        angle_msg.angle = ypr;
+        angle_msg.position = Point3f(0,0,0);
         angle_pub.push(angle_msg);
     }
 }
@@ -69,6 +83,7 @@ void Calculator::CalculateInit()
 
 void Calculator::CalculateMinePnp()
 {
+    cout<<"Start to calculate mine pnp"<<endl;
     vector<Point3f> Mine3D;
     vector<Point2f> Mine2D;
     Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,0));
@@ -77,17 +92,19 @@ void Calculator::CalculateMinePnp()
     Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
     Mat rvec = Mat::zeros(3,1,CV_64FC1);
     Mat tvec = Mat::zeros(3,1,CV_64FC1);
-    Mat_<float> rotMat(3, 3);
+    Mat rotMat = Mat::zeros(3,1,CV_64FC1);
     Eigen::Matrix<double, 3, 3> R;
     Eigen::Matrix<double, 3, 1> T;
-    for(int i = 0; i < anchor_point.size(); i++)
-    {
-        for(int j = 0; j < 4; j++)
-        {
-            Mine2D[j] = anchor_point[i][j];
+    cout<<"anchor_point:"<<anchor_point.size()<<" "<<anchor_point[0].size()<<endl;
+    for(int i = 0; i < 1; ++i){
+        for(int j = 0; j < anchor_point[i].size(); ++j){
+            Mine2D.push_back(anchor_point[i][j]);
+            cout<<Mine2D[j]<<endl;
         }
         solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec);
+        cout<<"revc"<<rvec<<endl;
         Rodrigues(rvec, rotMat);  
+        cout<<"rotMat"<<rotMat<<endl;
         //由于solvePnP返回的是旋转向量，故用罗德里格斯变换变成旋转矩阵
         cv::cv2eigen(rotMat, R);
         cv::cv2eigen(tvec, T);
@@ -99,6 +116,7 @@ void Calculator::CalculateMinePnp()
         double y = atan2(n(1), n(0));
         double p = atan2(-n(2), n(0) * cos(y) + n(1) * sin(y));
         double r = atan2(a(0) * sin(y) - a(1) * cos(y), -o(0) * sin(y) + o(1) * cos(y));
+
         ypr(0) = y;
         ypr(1) = p;
         ypr(2) = r;
@@ -107,7 +125,7 @@ void Calculator::CalculateMinePnp()
 
         cout << "rvec: " << rvec << endl;
         cout << "tvec: " << tvec << endl;
-        cout << "eulerAngle: " << ypr << endl;
+        cout << "eulerAngle: \n" << ypr << endl;
     }
         // for(int i=0;i<5;i++)
         // {
@@ -119,4 +137,3 @@ void Calculator::CalculateMinePnp()
         // pb.push_back( pc_to_pb(T) );
         // return pb;
 }
-#endif

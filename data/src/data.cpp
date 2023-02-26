@@ -57,12 +57,12 @@ MODE cast_run_mode(uint8_t mode)
 	}
 }
 
-std::string IMU_DATA_MSG::reprln()const
-{
-	return fmt::format(
-		"{:.3f} {:.3f} {:.3f} {} {} {:.3f} {:.5f}\n",
-		imu.roll, imu.pitch, imu.yaw,
-		mode, id, v,
-		time_stamp
-	);
-}
+// std::string IMU_DATA_MSG::reprln()const
+// {
+// 	return fmt::format(
+// 		"{:.3f} {:.3f} {:.3f} {} {} {:.3f} {:.5f}\n",
+// 		imu.roll, imu.pitch, imu.yaw,
+// 		mode, id, v,
+// 		time_stamp
+// 	);
+// }

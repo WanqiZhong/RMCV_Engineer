@@ -3,6 +3,7 @@
 #ifndef ENGCV_2023_DATA_HPP_
 #define ENGCV_2023_DATA_HPP_
 #include <opencv2/opencv.hpp>
+#include <Eigen/Core>
 #include <vector>
 #define UNKNOWN_ID (233)
 
@@ -122,11 +123,12 @@ struct CAMERA_DATA_MSG // simple version without IMU data
 {
     cv::Mat src;
     double time_stamp;
-}
+};
 
 struct ANGLE_DATA_MSG
 {
-    Eigen::Vector3d ypr(3);
+    cv::Point3f position;
+    Eigen::Vector3d angle;
 };
 
 struct MINE_POSITION_MSG
@@ -146,15 +148,6 @@ struct CONTROL_CMD
     // 2 for fire once (only in windmill)
 };
 #pragma pack()
-
-struct DETECT_MSG
-{
-    MODE mode;
-    double time_stamp;   // 单位: millionsecond
-    IMU_DATA_MSG imu_data; // 陀螺仪数据x,y,z
-    std::vector<armor::Armor> res; // 检测到的所有可能的目标
-    cv::Mat src;
-};
 
 
 class HaltEvent: std::exception // 停机事件

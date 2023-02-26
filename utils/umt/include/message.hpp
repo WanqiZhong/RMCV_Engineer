@@ -60,6 +60,11 @@ namespace umt{
         //
         ~Subscriber() {reset();}
 
+
+        bool empty() const {
+            return fifo_.empty();
+        }
+
         void reset(){
             if(!fifo_.empty()) fifo_ = std::queue<T>();                  //if fifo_ not empty,create an empty one
             if(!ptr_msg_) return;                                        

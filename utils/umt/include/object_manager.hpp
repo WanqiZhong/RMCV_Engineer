@@ -14,14 +14,20 @@ namespace umt{
 
         ObjManager() = default;
 
-        static pipe_ptr_s find_or_create(const std::string &msg_name){
-            std::unique_lock<std::mutex> lock(mtx_);                    //lock this thread to make sure map cannot be changed
+        static pipe_ptr_s find_or_create(const std::string &msg_name)
+        {
+            std::unique_lock<std::mutex> lock(mtx_); // lock this thread to make sure map cannot be changed
             auto iter = map_.find(msg_name);
-            if(iter != map_.end()) return iter->second.lock();              //cast weak_ptr to shared_ptr
-            pipe_ptr_s p_obj = std::make_shared<ObjManager<T>>();   //create shared ptr
-            map_.template emplace(msg_name, p_obj);                         //add to map
+            pipe_ptr_s p_obj;
+            if (iter != map_.end())
+                p_obj = iter->second.lock(); // cast weak_ptr to shared_ptr
+            if (p_obj)
+                return p_obj;
+            p_obj = std::make_shared<ObjManager<T>>(msg_name); // create shared ptr
+            map_.template emplace(msg_name, p_obj);            // add to map
             return p_obj;
         }
+
     private:
         static std::unordered_map<std::string,pipe_ptr_w> map_;     //inline?
         static std::mutex mtx_;

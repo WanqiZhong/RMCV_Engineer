@@ -1,5 +1,5 @@
-
 # OpenCV
+
 find_package(OpenCV REQUIRED)
 set(link ${OpenCV_LIBS} ${link})
 

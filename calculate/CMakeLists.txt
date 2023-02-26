@@ -1,15 +1,17 @@
-file(GLOB calculate_src "src/calculate.cpp")
+file(GLOB_RECURSE src "src/**")
 # OpenCV
 find_package(OpenCV REQUIRED)
 set(link ${OpenCV_LIBS} ${link})
 
-#Thread
+# utils
+set(link utils ${link})
+
+# Thread
 find_package(Threads REQUIRED)
 set(link Threads::Threads ${link})
 
-set(link log ${link})
 set(link data ${link})
-set(link utils ${link})
 
-add_library(calculate ${calculate_src})
+add_library(calculate ${src})
+target_include_directories(calculate PUBLIC include)
 target_link_libraries(calculate ${link})
