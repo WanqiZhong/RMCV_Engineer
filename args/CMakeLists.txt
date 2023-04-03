@@ -6,8 +6,8 @@ file(GLOB_RECURSE src
 )
 set(link spdlog::spdlog ${link})
 set(link data ${link})
+set(link toml11 ${link})
 
 add_library(args ${src})
 target_include_directories(args PUBLIC include)
 target_link_libraries(args ${link})
-target_link_libraries(args toml11)

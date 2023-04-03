@@ -15,7 +15,7 @@ set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 #for perf
 add_definitions(-DPERF)
 # set for spdlog external fmt
-add_definitions(-DSPDLOG_FMT_EXTERNAL)
+# add_definitions(-DSPDLOG_FMT_EXTERNAL)
 # set config path
 add_definitions(-DROOT="${ROOT}")
 
