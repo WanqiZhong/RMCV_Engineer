@@ -27,6 +27,9 @@ add_compile_options(-g)
 
 add_executable(run main.cpp)
 
+add_subdirectory(args)
+target_link_libraries(run args)
+
 add_subdirectory(data)
 target_link_libraries(run data)
 
