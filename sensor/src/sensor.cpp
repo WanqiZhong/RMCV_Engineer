@@ -52,7 +52,7 @@ void Sensor::Sensor_Run()
     // read mp4
     // VideoCapture cap("../mine2.mp4");
 
-    Mat img = imread("../mine2.png");
+    Mat img = imread("../minedata/mine2.png");
     // Mat img;
     umt::Publisher<cv::Mat> pub("channel0");
     while(mode!=HALT) //((mode=param.get_run_mode())!=HALT)

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libthread_butcher.a CMakeFiles/thread_butcher.dir/src/thread_butcher.o
-/usr/bin/ranlib libthread_butcher.a
