@@ -11,6 +11,7 @@ find_package(Threads REQUIRED)
 set(link Threads::Threads ${link})
 
 set(link data ${link})
+set(link args ${link})
 
 add_library(sensor ${src})
 target_include_directories(sensor PUBLIC include)

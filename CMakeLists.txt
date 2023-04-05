@@ -15,7 +15,7 @@ set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 #for perf
 add_definitions(-DPERF)
 # set for spdlog external fmt
-add_definitions(-DSPDLOG_FMT_EXTERNAL)
+# add_definitions(-DSPDLOG_FMT_EXTERNAL)
 # set config path
 add_definitions(-DROOT="${ROOT}")
 
@@ -26,6 +26,9 @@ add_compile_options(-g)
 # add_link_options(-fsanitize=address)
 
 add_executable(run main.cpp)
+
+add_subdirectory(args)
+target_link_libraries(run args)
 
 add_subdirectory(data)
 target_link_libraries(run data)

@@ -11,6 +11,8 @@ find_package(Threads REQUIRED)
 set(link Threads::Threads ${link})
 
 set(link data ${link})
+set(link args ${link})
+
 
 add_library(detect ${src})
 target_include_directories(detect PUBLIC include)
