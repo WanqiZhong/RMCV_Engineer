@@ -41,7 +41,7 @@ class Detector
 	/* 金矿HSV参数 */
 	
 
-        uint8_t mode=0;
+        int mode=0;
         bool mine_flag;
         #ifndef Laptop
         int side_num; 
@@ -49,6 +49,7 @@ class Detector
         int side_num = 2;
         #endif
     
+
         vector<vector<Point>> gold_mine_contours;  //金矿轮廓 
         vector<Vec4i> gold_mine_hierarchy; //金矿轮廓层次
         vector<Rect> gold_mine_whole_rect; //金矿标识角
@@ -57,12 +58,14 @@ class Detector
 
         vector<vector<Point>> gold_mine_contours_2;
         vector<Vec4i> gold_mine_hierarchy_2;
+        vector<Point> polycontours;
 
         vector<vector<Point>> logo_R; //R_logo轮廓
         vector<vector<Point>> gold_mine_side;  //金矿分面标识
         
         vector<Rect> silver_mine_rect; //银矿外侧轮廓
         vector<vector<Point>> silver_mine_contours;  //银矿标识
+        vector<int> corner_number;
         
         
     public:
@@ -76,7 +79,10 @@ class Detector
         int contrast = 37;
         int bright = 18;
         
-        Detector(){};
+        Detector(int mode)
+        {
+            this->mode = mode;
+        };
         ~Detector(){};
         
 
@@ -107,10 +113,10 @@ class Detector
         Mat process_img_corner(const Mat &img, int thresh, int maxval);
         int find_R(vector<vector<Point>> &logo_R, Mat process);
         vector<int> sort_length(Point p);
-        vector<vector<Point>> store_side(vector<vector<Point>> logo_R, vector<Point>& square);
-        void draw_side(Mat img, vector<Point> side, Point square);
-        void find_gold_mine_2(Mat &img, Rect &side_rect);
-        Mat get_gold_mine_2(Mat &img, Rect rec);
+        vector<vector<Point>> store_side(vector<vector<Point>> logo_R, vector<Point>& square,vector<int> &corner_number);
+        void draw_side(Mat img, vector<Point> side, Point square, int corner_number);
+        void find_gold_mine_2(Mat &img);
+        Mat get_gold_mine_2(Mat &img);
 
         /* 银矿识别 */
         void find_white_mineral(Mat &img, vector<Rect> &side_rect);

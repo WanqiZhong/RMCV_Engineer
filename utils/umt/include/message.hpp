@@ -8,7 +8,8 @@
 #include <queue>
 #include <iostream>
 #include <condition_variable>
-#include <args.hpp>
+
+#define HALT -1
 
 namespace umt{
     class MessageError : public std::runtime_error {
@@ -60,11 +61,6 @@ namespace umt{
         //
         ~Subscriber() {reset();}
 
-
-        bool empty() const {
-            return fifo_.empty();
-        }
-
         void reset(){
             if(!fifo_.empty()) fifo_ = std::queue<T>();                  //if fifo_ not empty,create an empty one
             if(!ptr_msg_) return;                                        
@@ -110,9 +106,10 @@ namespace umt{
                 if(status) {
                     break;
                 } else {
-                    if(param.get_run_mode() == HALT) {
-                        throw HaltEvent();
-                    }
+                    //if(param == HALT) {
+                        // throw HaltEvent();
+                       	
+                    //}
                 }
             }
             

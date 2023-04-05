@@ -17,6 +17,20 @@
 #include <string>
 #include <cstring>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/select.h>
+#include <linux/videodev2.h>
+
 using namespace std;
 using namespace cv;
 

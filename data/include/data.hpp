@@ -26,7 +26,6 @@ enum MODE // 运行模式
     ANTI_ROT, // 反陀螺
     B_WM,     // 大风车
     S_WM,     // 小风车
-    HALT,     // 停机
     Unknown,  // 未知
 };
 

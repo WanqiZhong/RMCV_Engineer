@@ -31,6 +31,7 @@ void Detector::Detect_Run()
 {
     cv::Mat img;
     bool receive_flag = 0;
+    int first_flag = 1;
     umt::Subscriber<cv::Mat> sub("channel0");
     umt::Publisher<MINE_POSITION_MSG> mine_sub("anchor_point_data");
     while(mode!=HALT)
@@ -60,13 +61,19 @@ void Detector::Detect_Run()
         {
             if(mode==GoldMode)
             {
+                if(first_flag)
+                {
+                    first_flag = 0;
+                    cout<<"run in Goldmine"<<endl; 
+                }
                 // GoldMineDetect_Run(img);
                 anchor_point.clear();
+                gold_mine_contours_2.clear();
                 GoldMineDetect_Run2(img);
                 if(anchor_point.empty())
                 {
                     // logger.info("No anchor point");
-                    cout<<"No anchor point"<<endl;
+                   cout<<"No anchor point"<<endl;
                 }
                 else
                     mine_sub.push(MINE_POSITION_MSG{.goal=anchor_point});
@@ -74,12 +81,22 @@ void Detector::Detect_Run()
             }
             else if(mode==SilverMode)
             {
+                if(first_flag)
+                {
+                    first_flag = 0;
+                    cout<<"\033[33mrun in Silvermine\033[0m"<<endl;
+                }
                 SilverMineDetect_Run(img);
                 // mine_sub.push(MINE_POSITION_MSG(silver_mine_rect));
                 // logger.info("SilverMineDetect_Run");
             }
             else if(mode==ChangeSiteMode)
             {
+                if(first_flag)
+                {
+                    first_flag = 0;
+                    cout<<"\033[31mrun in ChangeSite\033[0m"<<endl;
+                }
                 // ChangeSiteDetect_Run(img);
             }
             else
@@ -101,26 +118,42 @@ void Detector::GoldMineDetect_Run(Mat &img)
 
 void Detector::GoldMineDetect_Run2(Mat &img)
 {
-    Rect gold_mine_rec;
-    find_gold_mine_2(img, gold_mine_rec);
+    RotatedRect gold_mine_rec;
+    polycontours.clear();
+    find_gold_mine_2(img);
 
-    Mat output = get_gold_mine_2(img, gold_mine_rec);
+    if(polycontours.empty())
+        return;
+    Mat output = get_gold_mine_2(img);
    
 
-    Mat process = process_img_corner(output, 70, 255);
+    Mat process = process_img_corner(output, 110, 255);
 
     vector<vector<Point>> logo_R;
     int side_number = find_R(logo_R, process);
 
     vector<vector<Point>> side;
     vector<Point> square;
-    side = store_side(logo_R, square);
+    cout<<"Store side"<<endl;
+    side = store_side(logo_R, square, corner_number);
+    cout<<"Store side"<<endl;
     
-    if(!square.empty())
-        for (int i = 0; i < side_number; i++)
+    for (int i = 0; i < side_number; i++)
+    {
+        if (side.size() == 0)
         {
-            draw_side(img, side[i], square[i]);
+            cout << "cannot find side" << endl;
         }
+        else if (square.size() == 0)
+        {
+            cout << "cannot find square" << endl;
+        }
+        else
+        {
+            draw_side(img, side[i], square[i], corner_number[i]);
+        }
+    }
+
 }
 
 
@@ -460,55 +493,61 @@ void Detector::get_gold_mine(Mat &img)
 /* ====================================== 金矿识别方案2 =================================== */
 /* ====================================================================================== */
 
-/// @brief process the RGB image to get the contours of corner(include cvtColor, threshold, GaussianBlur, findContours)
-/// @param img current RGB frame image
-#include "detector.hpp"
 
-
-
-
-void Detector::find_gold_mine_2(Mat &img, Rect &side_rect)
+void Detector::find_gold_mine_2(Mat &img)
 {
     Mat output;
     cvtColor(img, output, COLOR_BGR2HSV);
-    inRange(output, Scalar(22, 131, 97), Scalar(28, 255, 186), output);
-
+    vector<Mat> channels;
+    split(output,channels);
+    equalizeHist(channels[2],channels[2]);
+    merge(channels,output);
+    // Mat temp;
+    // cvtColor(output,temp,COLOR_HSV2BGR);
+    // imshow("split",temp);
+    // inRange(output, Scalar(15, 100, 160), Scalar(40, 255, 255), output);
+    inRange(output, Scalar(0, 76, 169), Scalar(48, 255, 255), output);
     Mat kernel_middle = getStructuringElement(MORPH_RECT, Size(5, 5));
     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-    erode(output, output, kernel_middle);
-    dilate(output, output, kernel_middle);
-    dilate(output, output, kernel, Point(-1, -1), 3);
-    erode(output, output, kernel, Point(-1, -1), 5);
-    medianBlur(output, output, 3);
-
+    // erode(output, output, kernel_middle);
+    // dilate(output, output, kernel_middle);
+    
+    // dilate(output, output, kernel_middle, Point(-1, -1), 3);
+    // erode(output, output, kernel, Point(-1, -1), 5);
+    medianBlur(output, output,3);
     vector<vector<Point>> side_contours;
     vector<Vec4i> side_hierarchy;
     findContours(output, side_contours, side_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-
     for (int i = 0; i < side_contours.size(); i++)
     {
-        Rect rec = boundingRect(side_contours[i]);
-        double rate = float(rec.width) / float(rec.height);
-        double area = float(rec.width) * float(rec.height);
-
-        if (rate >= 0.5 && rate <= 2.5 && area >= 80000 && area <= 200000)
+        RotatedRect rec = minAreaRect(side_contours[i]);
+        double rate = float(rec.size.width) / float(rec.size.height);
+        double area = float(rec.size.width) * float(rec.size.height);
+        if (rate >= 0.5 && rate <= 1.4 && area >= 4000)
         {
-            //rectangle(img, rec, Scalar(255, 0, 0), 2, 8);
-            side_rect = rec;
+            // Point2f p[4];
+            // rec.points(p);
+            // for (int i = 0; i < 4; i++)
+            // {
+            //     line(img, p[i], p[(i + 1) % 4], Scalar(255, 0, 0));
+            // }
+            polycontours = side_contours[i];
         }
     }
+    // namedWindow("mine",WINDOW_NORMAL);
+    imshow("mine",output);
 }
-
-
-
-Mat Detector::get_gold_mine_2(Mat &img, Rect rec)
+Mat Detector::get_gold_mine_2(Mat &img)
 {
+    //TODO rec改为poly
+ 
+
     // 抠图
     Mat mask;
     mask = Mat::zeros(img.size(), CV_8UC1);
-    mask(rec).setTo(255);
+    fillPoly(mask, polycontours , Scalar(255, 255, 255));
+    // mask(rec).setTo(255);
     img.copyTo(mask, mask);
-
     // 背景变为白色
     for (int i = 0; i < mask.rows; i++)
     {
@@ -522,38 +561,55 @@ Mat Detector::get_gold_mine_2(Mat &img, Rect rec)
             }
         }
     }
-
     return mask;
 }
-
-
-
 /// @brief process the RGB image to get the contours of corner(include cvtColor, threshold, GaussianBlur, findContours)
 /// @param img current RGB frame image
 /// @param thresh the threshold of function "threshold"
 /// @param maxval the max value of function "threshold"
-
 Mat Detector::process_img_corner(const Mat &img, int thresh, int maxval)
 {
     Mat dst;
     cvtColor(img, dst, COLOR_BGR2GRAY);
-    GaussianBlur(dst, dst, Size(3, 3), 2, 2);
+    imshow("grey",img);
+    // GaussianBlur(dst, dst, Size(3, 3), 2, 2);
     threshold(dst, dst, thresh, maxval, THRESH_BINARY_INV);
-    
-    Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-    morphologyEx(dst, dst, MORPH_CLOSE, kernel, Point(-1, -1), 2);
-    //dilate(dst, dst, kernel, Point(-1, -1), 1);
-    medianBlur(dst, dst, 1);
-    findContours(dst, gold_mine_contours_2, gold_mine_hierarchy_2, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-    // for (int i = 0; i < contours.size(); i++)
-    // {
-    //     Rect rec = boundingRect(contours[i]); 
-    //     rectangle(dst,rec,Scalar(255, 0, 0), 2, 8);
-    // }
 
+    Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
+    // morphologyEx(dst, dst, MORPH_CLOSE, kernel, Point(-1, -1), 2);
+    // dilate(dst, dst, kernel, Point(-1, -1), 1);
+    // medianBlur(dst, dst, 1);
+    vector<vector<Point>> contour_temp;
+    findContours(dst, contour_temp, gold_mine_hierarchy_2, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+
+    for (int i = 0; i < contour_temp.size(); i++)
+    {
+        RotatedRect rec = minAreaRect(contour_temp[i]);
+        double area = rec.size.height * rec.size.width;
+        double rate = double(rec.size.height) / double(rec.size.width);
+        // cout<<rate<<endl;
+
+        if (contourArea(contour_temp[i]) >= 10 && contourArea(contour_temp[i]) <= 500 && area >= 80 && area <= 700 && rate >= 0.3 && rate <= 3.5)
+        {
+            Point2f p[4];
+            rec.points(p);
+            for (int i = 0; i < 4; i++)
+            {
+                line(img, p[i], p[(i + 1) % 4], Scalar(255, 0, 0));
+            }
+            gold_mine_contours_2.push_back(contour_temp[i]);
+        }
+    }
+    // cout<<"contours.size():"<<gold_mine_contours_2.size()<<endl;
+    namedWindow("corner", WINDOW_NORMAL);
+    imshow("corner", dst);
+    // for (int i = 0; i < gold_mine_contours_2.size(); i++)
+    // {
+    //     Rect rec = boundingRect(gold_mine_contours_2[i]);
+    //
+    // }
     return dst;
 }
-
 /// @brief find contours of logo "R" (include findContours)
 /// @param logo_R to store the contours of "R"
 /// @param process the image which have been processed
@@ -562,30 +618,34 @@ int Detector::find_R(vector<vector<Point>> &logo_R, Mat process)
 {
     vector<vector<Point>> contours;
     vector<Vec4i> hierarchy;
+
+    Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
+    morphologyEx(process, process, MORPH_CLOSE, kernel, Point(-1, -1), 2);
+
     findContours(process, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE);
     for (int i = 0; i < contours.size(); i++)
     {
-        if (hierarchy[i][2] >= 0)
+        if (hierarchy[i][2] >= 0 && contourArea(contours[i]) >= 800 && contourArea(contours[i]) <= 3000)
         {
             logo_R.push_back(contours[i]);
-            // Rect rec = boundingRect(contours[i]);
+            Rect rec = boundingRect(contours[i]);
             // rectangle(process, rec, Scalar(255,0,0), 2, 8);
         }
     }
+    // namedWindow("corner",WINDOW_NORMAL);
+    // imshow("corner",process);
     int side_number = logo_R.size();
     return side_number;
 }
-
 /// @brief find the four corners closest to "R"
 /// @param p the center of "R"
 /// @return vector<int> min
 vector<int> Detector::sort_length(Point p)
 {
     double len = 0;
-
     Point corner_center;
-
     vector<double> len_temp;
+    // 找到各轮廓的中心点与R的中心点的距离并排序
     for (int i = 0; i < gold_mine_contours_2.size(); i++)
     {
         corner_center = Point(0, 0);
@@ -596,8 +656,8 @@ vector<int> Detector::sort_length(Point p)
         }
         corner_center.x /= gold_mine_contours_2[i].size();
         corner_center.y /= gold_mine_contours_2[i].size();
-
         len = sqrt(((double)p.x - (double)corner_center.x) * ((double)p.x - (double)corner_center.x) + ((double)p.y - (double)corner_center.y) * ((double)p.y - (double)corner_center.y));
+
         len_temp.push_back(len);
     }
     for (int i = 0; i < gold_mine_contours_2.size(); i++)
@@ -612,13 +672,11 @@ vector<int> Detector::sort_length(Point p)
             }
         }
     }
-
     vector<int> min;
-    for (int j = 0; j < 5; j++)
+    for (int j = 0; j < len_temp.size(); j++)
     {
         for (int i = 0; i < gold_mine_contours_2.size(); i++)
         {
-
             corner_center = Point(0, 0);
             for (int j = 0; j < gold_mine_contours_2[i].size(); j++)
             {
@@ -627,24 +685,23 @@ vector<int> Detector::sort_length(Point p)
             }
             corner_center.x /= gold_mine_contours_2[i].size();
             corner_center.y /= gold_mine_contours_2[i].size();
-
             len = sqrt(((double)p.x - (double)corner_center.x) * ((double)p.x - (double)corner_center.x) + ((double)p.y - (double)corner_center.y) * ((double)p.y - (double)corner_center.y));
-
-            if (len == len_temp[j])
+            cout<<len<<endl;
+            if (len == len_temp[j] && len >= 25 && len <= 65)
             {
                 min.push_back(i);
+                // cout<<len<<endl;
                 break;
             }
         }
     }
     return min;
 }
-
 /// @brief store all contours'points in one side
 /// @param logo_R the contours of R
 /// @param square to store points of square corners
 /// @return vector<Point> side
-vector<vector<Point>> Detector::store_side(vector<vector<Point>> logo_R, vector<Point>& square)
+vector<vector<Point>> Detector::store_side(vector<vector<Point>> logo_R, vector<Point> &square, vector<int> &corner_number)
 {
     // 找到R的中心点
     vector<Point> p_R;
@@ -659,67 +716,168 @@ vector<vector<Point>> Detector::store_side(vector<vector<Point>> logo_R, vector<
         Point p_temp(sum_x / logo_R[i].size(), sum_y / logo_R[i].size());
         p_R.push_back(p_temp);
     }
-    // 找到离R最近的5个轮廓的索引(包括R)
+    // 找到角点的索引
     vector<vector<int>> len_min;
     for (int i = 0; i < logo_R.size(); i++)
     {
         len_min.push_back(sort_length(p_R[i]));
     }
-
     // 找到正方形角点
     for (int i = 0; i < logo_R.size(); i++)
     {
         for (int j = 0; j < len_min[i].size(); j++)
         {
-            Rect rec = boundingRect(gold_mine_contours_2[len_min[i][j]]);
-            double area = float(rec.width) * float(rec.height);
-            if (contourArea(gold_mine_contours_2[len_min[i][j]]) / area >= 0.6)
+            RotatedRect rec = minAreaRect(gold_mine_contours_2[len_min[i][j]]);
+            double area = float(rec.size.width) * float(rec.size.height);
+            double contour_area = contourArea(gold_mine_contours_2[len_min[i][j]]);
+            double rate = contourArea(gold_mine_contours_2[len_min[i][j]]) / area;
+            cout<<"rate:"<<rate<<"   area:"<<area<<endl;
+
+            if (rate >= 0.6 && contour_area >= 200 && contour_area <= 1000)
             {
                 square.push_back(gold_mine_contours_2[len_min[i][j]][0]);
+                // cout << square[0] << endl;
             }
         }
-        
     }
-    cout<<square.size()<<endl;
-    cout<<"logo_R.size():"<<logo_R.size()<<endl;
 
-    // 将4个轮廓的点放入一个容器
+    cout << "square.size():" << square.size() << endl;
+    cout << "logo_R.size():" << logo_R.size() << endl;
+    // cout<<logo_R[0][0]<<endl;
+
+    //  将4个轮廓的点放入一个容器
     vector<vector<Point>> side;
     vector<Point> side_;
     for (int i = 0; i < logo_R.size(); i++)
     {
         vector<Point> side_temp;
         side_ = side_temp;
-        for (int j = 1; j < 5; j++)
+        if (len_min[i].size() >= 3)
         {
-            for (int k = 0; k < gold_mine_contours_2[len_min[i][j]].size(); k++)
+            for (int j = 0; j < len_min[i].size(); j++)
             {
-                side_.push_back(gold_mine_contours_2[len_min[i][j]][k]);
+                for (int k = 0; k < gold_mine_contours_2[len_min[i][j]].size(); k++)
+                {
+                    side_.push_back(gold_mine_contours_2[len_min[i][j]][k]);
+                }
             }
+            side.push_back(side_);
         }
-        side.push_back(side_);
+        else
+            cout << "cannot find enough corner" << endl;
+
+        corner_number.push_back(len_min[i].size());
     }
+    if(side.empty()) return{};
     return side;
 }
-
 /// @brief draw sides
 /// @param img, the original picture
 /// @param side, all contours'points in each side
 /// @param squre, points of square corners
-
-void Detector::draw_side(Mat img, vector<Point> side, Point square)
+void Detector::draw_side(Mat img, vector<Point> side, Point square, int corner_number)
 {
     vector<Point> hull;
     vector<Point> poly;
     double len[4] = {0};
-    convexHull(Mat(side), hull, false);
-
-    approxPolyDP(hull, poly, 25, true);
+    vector<vector<Point>> anchor_point;
     anchor_point.clear();
     vector<Point> anchor_temp;
+    cout<<corner_number<<endl;
+    if (corner_number == 4)
+    {
+        convexHull(Mat(side), hull, false);
+        approxPolyDP(hull, poly, 25, true);
+
+        cout << "poly.size():" << poly.size() << endl;
+    }
+    else if (corner_number == 3)
+    {
+        vector<Point> poly_temp;
+        vector<Point> hull_temp;
+        convexHull(Mat(side), hull_temp, false);
+        approxPolyDP(hull_temp, poly_temp, 5, true);
+        // cout<<poly_temp.size()<<endl;
+        // polylines(img, poly_temp, true, Scalar(255, 0, 0), 2, 8, 0);
+        if (poly_temp.size() != 5)
+        {
+            cout << "wrong number of poly_temp,number:" << poly_temp.size() << endl;
+        }
+        else
+        {
+
+            // 计算相邻两点间距，找到最短的两条线段
+            double len[5] = {0};
+            for (int i = 0; i < 5; i++)
+            {
+                len[i] = sqrt((poly_temp[i].x - poly_temp[(i + 1) % 5].x) * (poly_temp[i].x - poly_temp[(i + 1) % 5].x) + (poly_temp[i].y - poly_temp[(i + 1) % 5].y) * (poly_temp[i].y - poly_temp[(i + 1) % 5].y));
+            }
+            int index[5] = {0, 1, 2, 3, 4};
+
+            for (int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 4 - i; j++)
+                {
+                    if (len[j] > len[j + 1])
+                    {
+                        double temp = len[j];
+                        len[j] = len[j + 1];
+                        len[j + 1] = temp;
+                        int temp_index = index[j];
+                        index[j] = index[j + 1];
+                        index[j + 1] = temp_index;
+                    }
+                }
+            }
+            Vec4i LineA, LineB;
+            LineA = {poly_temp[index[0]].x, poly_temp[index[0]].y, poly_temp[(index[0] + 1) % 5].x, poly_temp[(index[0] + 1) % 5].y};
+            LineB = {poly_temp[index[1]].x, poly_temp[index[1]].y, poly_temp[(index[1] + 1) % 5].x, poly_temp[(index[1] + 1) % 5].y};
+
+            // 求两直线的交点
+            double ka, kb;
+            ka = (double)(LineA[3] - LineA[1]) / (double)(LineA[2] - LineA[0]); // 求出LineA斜率
+            kb = (double)(LineB[3] - LineB[1]) / (double)(LineB[2] - LineB[0]); // 求出LineB斜率
+
+            Point2f crosspoint_temp;
+            crosspoint_temp.x = (ka * LineA[0] - LineA[1] - kb * LineB[0] + LineB[1]) / (ka - kb);
+            crosspoint_temp.y = (ka * kb * (LineA[0] - LineB[0]) + ka * LineB[1] - kb * LineA[1]) / (ka - kb);
+            Point crosspoint;
+            crosspoint.x = int(crosspoint_temp.x);
+            crosspoint.y = int(crosspoint_temp.y);
+            poly_temp.push_back(crosspoint);
+
+            // 对加入交点的点集再次凸包和多边形拟合
+            convexHull(Mat(poly_temp), hull, false);
+            approxPolyDP(hull, poly, 25, true);
+
+            if (poly.size() != 4)
+            {
+                cout << "wrong number of poly,number:" << poly.size() << endl;
+            }
+            else
+            {
+                double k1 = (double)(poly[0].y - poly[1].y) / (double)(poly[0].x - poly[1].x);
+                double k2 = (double)(poly[2].y - poly[3].y) / (double)(poly[2].x - poly[3].x);
+                double k3 = (double)(poly[1].y - poly[2].y) / (double)(poly[1].x - poly[2].x);
+                double k4 = (double)(poly[3].y - poly[0].y) / (double)(poly[3].x - poly[0].x);
+
+                // cout<<"k1:"<<k1<<endl;
+                // cout<<"k2:"<<k2<<endl;
+                // cout<<"k3:"<<k3<<endl;
+                // cout<<"k4:"<<k4<<endl;
+                //polylines(img, poly, true, Scalar(255, 0, 0), 2, 8, 0);
+                if(abs(k1-k2)>=0.4 || abs(k3-k4)>=0.4)
+                {
+                    cout<<"cannot detect 3 clear corners"<<endl;
+                    poly.clear();
+                }
+            }
+
+        }
+    }
+
     if (poly.size() == 4)
     {
-
         for (int i = 0; i < 4; i++)
         {
             len[i] = sqrt((poly[i].x - square.x) * (poly[i].x - square.x) + (poly[i].y - square.y) * (poly[i].y - square.y));
@@ -734,7 +892,7 @@ void Detector::draw_side(Mat img, vector<Point> side, Point square)
                 min_index = i;
             }
         }
-        min_index = (min_index + 2)%4;
+        min_index = (min_index + 2) % 4;
         for (int i = 0; i < 4; i++)
         {
             cout << poly[(min_index + i) % 4] << endl;
@@ -743,13 +901,14 @@ void Detector::draw_side(Mat img, vector<Point> side, Point square)
         anchor_point.push_back(anchor_temp);
         polylines(img, poly, true, Scalar(255, 0, 0), 2, 8, 0);
     }
-
-    if(img.empty())
+    if (img.empty())
     {
-        cout<<"img is empty"<<endl;
+        cout << "img is empty" << endl;
     }
-    else imshow("img_poly", img);
+    else
+        imshow("img_poly", img);
 }
+
 
 /* ====================================================================================== */
 /* ====================================== 银矿识别部分 =================================== */
