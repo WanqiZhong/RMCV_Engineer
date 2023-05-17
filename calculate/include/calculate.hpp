@@ -43,8 +43,19 @@ class Calculator
         vector<vector<Point>> anchor_point;
         Mat CameraMatrix;
         Mat DistCoeffs;
+        vector<Mat> final_R; // 固定视角
+        vector<Mat> final_T; // 固定视角
+        double L = 0;
+        double H = 0;
+        Mat final_Rvec = (Mat_<double>(3,3) <<  0, 0, 1,
+                                              -1, 0, 0,
+                                               0,-1, 0);
+        Mat final_Tvec = (Mat_<double>(3,1) << -L, 0, H); // 相机与吸盘转换矩阵
         Eigen::Vector3d ypr;
+        Mat position;
+        int view_type = 0;
         thread Calculator_thread;
+
     public:
         Calculator(){};
         ~Calculator(){};
@@ -56,7 +67,7 @@ class Calculator
 
         void CalculateInit();
         void CalculateInit(Mat CameraMatrix, Mat DistCoeffs);
-        void CalculateMinePnp();
+        void CalculatePnp();
 
 };    
 

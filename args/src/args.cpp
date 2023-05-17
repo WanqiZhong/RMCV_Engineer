@@ -15,16 +15,19 @@ MODE Args::get_run_mode()
     if (debug.pseudo_mode)
     {
         size_t interval = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - begin_time).count();
-        switch (interval / 5 % 3)
+        switch (interval / 5 % 4)
         {
         case 0:
-            set_run_mode(AUTO_AIM);
+            set_run_mode(GoldMode);
             break;
         case 1:
-            set_run_mode(S_WM);
+            set_run_mode(SilverMode);
             break;
         case 2:
-            set_run_mode(B_WM);
+            set_run_mode(ChangeSiteMode);
+            break;
+        case 3:
+            set_run_mode(ChangeSiteMode);
             break;
         }
     }
@@ -37,8 +40,8 @@ MODE Args::get_run_mode()
 void Args::set_run_mode(const MODE target)
 {
     pthread_rwlock_wrlock(&rwlock_);
-    if (_run_mode != HALT)
-        _run_mode = target;
+    // if (_run_mode != HALT)
+    //     _run_mode = target;
     pthread_rwlock_unlock(&rwlock_);
 }
 
@@ -53,16 +56,6 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
 
     // Global
     std::string mode = local_config.at("run_mode").as_string();
-    if(mode == "AUTO_AIM") {
-        _run_mode = AUTO_AIM;
-    } else if (mode == "B_WM"){
-        _run_mode = B_WM; 
-    } else if (mode == "S_WM"){
-        _run_mode = S_WM; 
-    }else {
-        // TODO: other modes
-        _run_mode = AUTO_AIM;
-    }
     pthread_rwlock_init(&rwlock_, NULL);
 
     // Sensor
@@ -102,6 +95,7 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     constants_path_default = constants_prefix + toml::find<std::string>(predictor, "constants_default");
     constants_path = constants_prefix + toml::find<std::string>(predictor_local, "constants");
     if(constants_path.find(".toml") == std::string::npos) {
+        std::cout<<"Wrong Path"<<std::endl;
         throw std::runtime_error("Wrong Constants Path: " + constants_path);
     }
 

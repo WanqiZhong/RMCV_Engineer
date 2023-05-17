@@ -9,8 +9,6 @@
 #include <iostream>
 #include <condition_variable>
 
-#define HALT -1
-
 namespace umt{
     class MessageError : public std::runtime_error {
     public: //protected
@@ -130,7 +128,7 @@ namespace umt{
             }
 
             std::unique_lock<std::mutex> lock(mtx_);
-            bool status = cv_.wait_for(lock, std::chrono::seconds(2), [this]() {
+            bool status = cv_.wait_for(lock, std::chrono::milliseconds(10), [this]() {
                 return !fifo_.empty();
             });
 

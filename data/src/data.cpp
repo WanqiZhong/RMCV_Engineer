@@ -1,4 +1,5 @@
 #include "data.hpp"
+// #include <fmt/format.h>
 
 uint8_t get_simple_id(uint8_t id)
 {
@@ -45,24 +46,15 @@ MODE cast_run_mode(uint8_t mode)
 	switch (mode)
 	{
 	case 0:
+		return GoldMode;
 	case 1:
-		return AUTO_AIM;
-		break;
+		return SilverMode;
 	case 2:
-		return S_WM;
+		return ChangeSiteMode;
 	case 3:
-		return B_WM;
+		return HALT;
 	default:
 		return Unknown;
 	}
 }
 
-// std::string IMU_DATA_MSG::reprln()const
-// {
-// 	return fmt::format(
-// 		"{:.3f} {:.3f} {:.3f} {} {} {:.3f} {:.5f}\n",
-// 		imu.roll, imu.pitch, imu.yaw,
-// 		mode, id, v,
-// 		time_stamp
-// 	);
-// }

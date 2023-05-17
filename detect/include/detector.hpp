@@ -20,12 +20,6 @@
 using namespace std;
 using namespace cv;
 
-
-#define HALT -1
-#define GoldMode 0
-#define SilverMode 1
-#define ChangeSiteMode 2
-
 #define Laptop
 
 #define gold_hmin 0
@@ -35,11 +29,12 @@ using namespace cv;
 #define gold_vmin 37
 #define gold_vmax 255
 
+
+
 class Detector
 {
     private:
 	/* 金矿HSV参数 */
-	
 
         int mode=0;
         bool mine_flag;
@@ -49,7 +44,7 @@ class Detector
         int side_num = 2;
         #endif
     
-
+        
         vector<vector<Point>> gold_mine_contours;  //金矿轮廓 
         vector<Vec4i> gold_mine_hierarchy; //金矿轮廓层次
         vector<Rect> gold_mine_whole_rect; //金矿标识角
@@ -110,13 +105,14 @@ class Detector
         void get_gold_mine(Mat &img);
 
         /* 寻找金矿与分面识别 方案2 */
+        void img_light_enhance(Mat &img, Mat &img_hsv);
         Mat process_img_corner(const Mat &img, int thresh, int maxval);
         int find_R(vector<vector<Point>> &logo_R, Mat process);
         vector<int> sort_length(Point p);
         vector<vector<Point>> store_side(vector<vector<Point>> logo_R, vector<Point>& square,vector<int> &corner_number);
         void draw_side(Mat img, vector<Point> side, Point square, int corner_number);
-        void find_gold_mine_2(Mat &img);
-        Mat get_gold_mine_2(Mat &img);
+        // void find_gold_mine_2(Mat &img);
+        Mat get_gold_mine_2(Mat &img, Mat &colorhist);
 
         /* 银矿识别 */
         void find_white_mineral(Mat &img, vector<Rect> &side_rect);

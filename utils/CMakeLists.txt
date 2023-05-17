@@ -1,4 +1,10 @@
+add_subdirectory(log)
+add_subdirectory(perf)
+add_subdirectory(thread_butcher)
 add_subdirectory(umt)
+add_subdirectory(watchdog)
 
 add_library(utils INTERFACE)
-target_link_libraries(utils INTERFACE umt)
+target_link_libraries(utils INTERFACE log perf thread_butcher umt watchdog)
+# add_library(utils INTERFACE)
+# target_link_libraries(utils INTERFACE umt log)

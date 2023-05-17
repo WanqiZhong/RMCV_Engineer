@@ -30,6 +30,11 @@
 #include <sys/mman.h>
 #include <sys/select.h>
 #include <linux/videodev2.h>
+#include <log.hpp>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 
 using namespace std;
 using namespace cv;
@@ -46,7 +51,9 @@ class Sensor
     private:
         uint8_t mode=0;
         Mat img;
+        Mat send_img;
         std::mutex img_mtx; 
+        vector<string> cam_name = {"/dev/cam1","/dev/cam2","/dev/cam3","/dev/cam4"};
         #ifdef Laptop
         int side_num = 2; 
         #else 
@@ -54,7 +61,9 @@ class Sensor
         #endif
 
     public:
-        Sensor(){};
+        Sensor(){
+        
+        };
         ~Sensor(){};
 
         /* 主进程 */

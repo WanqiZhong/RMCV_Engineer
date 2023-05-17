@@ -1,0 +1,45 @@
+# Global
+
+# Sensor
+[sensor]
+
+# Detector
+[detector]
+
+[detector.armor]
+path = "models/test_armor/armor" # path to model (without ext name)
+nms_thresh = 0.7
+conf_thresh = 0.7
+
+[detector.wind]
+path = "models/wind"
+nms_thresh = 0.7
+conf_thresh = 0.7
+
+# Predictor
+[predictor]
+constants_prefix = "config/constants/"
+constants_default = "constants.default.toml"
+
+# Bridge
+[bridge]
+
+
+# Log
+[log]
+level = "debug" # default log_level
+info_prefix = "logs/Info_"
+error_prefix = "logs/Error_"
+
+[log.record]
+sensor_prefix = "logs/raw/"
+sensor_fps = 170 # -1 for use sensor config
+imu_prefix = "logs/raw/"
+detector_prefix = "logs/records/"
+detector_fps = 170
+
+[watchdog]
+# 看门狗每次查询的间隔时间(ms)
+interval = 400
+# 超时reset的时间(s)
+timeout = 3

@@ -45,4 +45,7 @@ target_link_libraries(run detect)
 add_subdirectory(calculate)
 target_link_libraries(run calculate)
 
+add_subdirectory(com)
+target_link_libraries(run com)
+
 

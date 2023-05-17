@@ -1,11 +1,22 @@
 // 数据类型
 
-#ifndef ENGCV_2023_DATA_HPP_
-#define ENGCV_2023_DATA_HPP_
+#ifndef CRH_2022_DATA_HPP_
+#define CRH_2022_DATA_HPP_
 #include <opencv2/opencv.hpp>
 #include <Eigen/Core>
 #include <vector>
 #define UNKNOWN_ID (233)
+namespace armor
+{
+    struct Armor // 代表一个装甲板
+    {
+        cv::Rect_<float> rect;
+        cv::Point2f pts[5];
+        float conf;
+        int color;
+        int type;
+    };
+}
 
 namespace ml // machine learning
 {
@@ -21,11 +32,10 @@ namespace ml // machine learning
 
 enum MODE // 运行模式
 {
-    NO_AIM,   // 无瞄准
-    AUTO_AIM, // 普通自瞄
-    ANTI_ROT, // 反陀螺
-    B_WM,     // 大风车
-    S_WM,     // 小风车
+    GoldMode,
+    SilverMode,
+    ChangeSiteMode,
+    HALT,     // 停机
     Unknown,  // 未知
 };
 
@@ -100,39 +110,20 @@ struct pure_IMU{
     }
 };
 struct IMU_DATA_MSG{
-    //float x,y,z; // x-绕x轴转角-roll  y-绕y轴转角-pitch  z-绕z轴转角-yaw
-    pure_IMU imu;
-    uint8_t mode; // 0 for close, 1 for AUTO_AIM, 2 for S_WM, 3 for B_WM
-    uint8_t id;
-    float v;
+    uint8_t cam_id;
+    uint8_t position_id;
+    uint8_t mode;
     double time_stamp;
-    std::string reprln()const;
 };
 #pragma pack()
 
 struct SENSOR_DATA_MSG
 {
     cv::Mat src;
+    std::vector<float> blob;
     IMU_DATA_MSG imu_data; // TODO: add extra infomation
     double time_stamp;
     MODE run_mode;
-};
-
-struct CAMERA_DATA_MSG // simple version without IMU data
-{
-    cv::Mat src;
-    double time_stamp;
-};
-
-struct ANGLE_DATA_MSG
-{
-    cv::Point3f position;
-    Eigen::Vector3d angle;
-};
-
-struct MINE_POSITION_MSG
-{
-    std::vector<std::vector<cv::Point>> goal;
 };
 
 #pragma pack(1)
@@ -147,6 +138,15 @@ struct CONTROL_CMD
     // 2 for fire once (only in windmill)
 };
 #pragma pack()
+
+struct DETECT_MSG
+{
+    MODE mode;
+    double time_stamp;              // 单位: millionsecond
+    IMU_DATA_MSG imu_data; // 陀螺仪数据x,y,z
+    std::vector<armor::Armor> res; // 检测到的所有可能的目标
+    cv::Mat src;
+};
 
 
 class HaltEvent: std::exception // 停机事件
@@ -170,9 +170,25 @@ namespace wm
 // Watch Dog Heartbeat
 struct HEART_BEAT
 {
-    
+    enum TYPE
+    {
+        DEFAULT,    // a normal heart beat
+        WAIT,       // wait for other modules
+        CONTD,      // waiting done, continue
+    };
+    TYPE type;
 };
 
+struct ANGLE_DATA_MSG
+{
+    cv::Mat position;
+    Eigen::Vector3d angle;
+};
+
+struct MINE_POSITION_MSG
+{
+    std::vector<std::vector<cv::Point>> goal;
+};
 
 uint8_t get_simple_id(uint8_t);
 // uint8_t get_simple_id(Robot_id_dji); // unneeded

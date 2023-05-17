@@ -1,0 +1,68 @@
+# Global
+run_mode = "AUTO_AIM" # default run mode
+
+
+[sensor]
+
+[sensor.camera]
+serial_number = ""
+camera_company = "HK"
+exposure_time = 3000.0
+energy_exposure_time = 1000.0
+gain = 10.0
+energy_gain = 5.0
+grab_height = 640
+grab_width = 640
+normal_grab_height = 640
+normal_grab_width = 640
+energy_grab_height = 1080
+energy_grab_width = 1080
+frame_rate = 200
+offset_y = -1
+offset_x = -1
+energy_offset_x = -1
+energy_offset_y = -1
+net_height = 640
+net_width = 640
+
+
+[predictor]
+constants = "engineer.toml" # Predictor相关常数文件
+
+
+[bridge]
+use_can = false
+serial_name = "/dev/ttyUSB0"
+serial_rate = 115200
+send_id = 0x001
+recv_id = 0x002
+
+
+# Debug
+[debug]
+pseudo_camera = false
+video = "../ood_blue.mp4"
+skip_minutes = 0.0
+pseudo_imu = false
+file_imu = false
+imu_path = "imu.imu"
+with_imshow_detector = false
+with_imshow_predictor = true
+disable_auto_shoot = false
+pseudo_mode = false
+watchdog_disabled = true
+
+
+[log]
+
+[log.record]
+# 相机内录
+sensor_need = true
+# imu录制（与相机内录同步）
+imu_need = true
+# 含目标框内录
+detector_need = false
+
+[watchdog]
+# 抑制看门狗reset失败的时候的重启
+reboot_disabled = true

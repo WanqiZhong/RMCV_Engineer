@@ -1,0 +1,175 @@
+[camera]
+F = [ [ 1273.5096931699643, 0.0, 281.6342455704224,], [ 0.0, 1274.412923337173, 356.51342207682484,], [ 0.0, 0.0, 1.0,],]
+C = [ -0.22375498735597868, 0.28173237030830756, 0.0023061024316095753, -0.002034056774360411, -2.3013327557759515,]
+
+# Only for test
+[cam2pitch]
+R = [
+    [0.0, 0.0, 1.0],
+    [-1.0, 0.0, 0.0],
+    [0.0, -1.0, 0.0],
+]
+T = [-0.01357452997940258, 0.02125928887697352, 0.1031828554965732]
+
+# Only for test
+[pitch2yaw]
+T = [0.0, 0.0, 0.0, ]
+
+[imu]
+R = [
+    [0.0, 0.0, 1.0],
+    [-1.0, 0.0, 0.0],
+    [0.0, -1.0, 0.0],
+]
+T = [-0.01357452997940258, 0.02125928887697352, 0.1031828554965732]
+
+[EKF]
+Ke = [1.0, 1.0, 0.4]
+P = [1.0, 1.0, 1.0, 0.6, 0.6, 0.6]
+Q = [0.1, 0.1, 0.0001, 100.0, 100.0, 100.0]
+R = [50.0, 50.0, 10.0]
+
+[SEKF]
+P = [1.0, 1.0, 1.0, 1.0, 1.0]
+Q = [0.1, 0.1, 0.1, 100.0, 100.0]
+R = [30.0, 1.0, 100.0]
+Ke = [0.4, 1.0, 1.0]
+
+[BWM_EKF]
+Q = [
+  [0.0001, 0.0, 0.0, 0.0, 0.0, 0.0],
+  [0.0, 0.0001, 0.0, 0.0, 0.0, 0.0],
+  [0.0, 0.0, 0.0001, 0.0, 0.0, 0.0],
+  [0.0, 0.0, 0.0, 0.0001, 0.0, 0.0],
+  [0.0, 0.0, 0.0, 0.0, 0.0001, 0.0],
+  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0001],
+]
+R = [
+  [0.5, 0.0],
+  [0.0, 0.5],
+]
+
+[SWM_EKF]
+Q = [
+  [0.0001, 0.0],
+  [0.0, 0.0001],
+]
+R = [
+  [0.5, 0.0],
+  [0.0, 0.5],
+]
+
+[ballistic]
+yaw2gun_offset = 0.00
+S = [0.0, -0.0, -0.00]
+big_k1 = 1.08
+big_k2 = 1.05
+big_k3 = 1.0
+big_k4 = 1.02
+big_x_thresh = 9.0
+big_y_thresh = 3.0
+small_k1 = 1.0
+small_k2 = 1.0
+small_k3 = 1.0
+small_k4 = 1.0
+small_x_thresh = 10.0
+small_y_thresh = 4.0
+yaw_offset = 0.0
+pitch_offset = 0.0
+table_9 = "models/small_30.dat"
+table_15 = "models/small_30.dat"
+table_16 = "models/small_30.dat"
+table_18 = "models/small_30.dat"
+table_30 = "models/small_30.dat"
+
+[BWMballistic]
+S = [0.0, 0.0, 0.03]
+big_k1 = 1.05
+big_k2 = 1.005
+big_x_thresh = 9.0
+big_y_thresh = 3.0
+debug_mode = 0
+flying_delay = 1.5
+prepare_time = 0.5
+shoot_delay = 0.1
+small_k1 = 1.38
+small_k2 = 1.38
+small_k3 = 1.0
+small_k4 = 1.0
+small_x_thresh = 10.0
+small_y_thresh = 4.0
+switch_delay = 1.0
+yaw_offset = 0.0
+pitch_offset = 0.0
+table_9 = "models/small_30.dat"
+table_15 = "models/small_30.dat"
+table_16 = "models/small_30.dat"
+table_18 = "models/small_30.dat"
+table_30 = "models/small_30.dat"
+
+[SWMballistic]
+S = [0.0, 0.0, 0.03]
+big_k1 = 1.05
+big_k2 = 1.005
+big_x_thresh = 9.0
+big_y_thresh = 3.0
+debug_mode = 0
+flying_delay = 0.6
+prepare_time = 0.5
+shoot_delay = 0.1
+small_k1 = 1.38
+small_k2 = 1.38
+small_k3 = 1.0
+small_k4 = 1.0
+small_x_thresh = 10.0
+small_y_thresh = 4.0
+switch_delay = 0.2
+yaw_offset = 0.3
+pitch_offset = 0.0
+
+[etc]
+interframe_dis_thresh = 0.02617
+robot_2armor_dis_thresh = 1.0
+census_period = 1.0
+census_period_min = 0.3
+census_period_max = 1.5
+reset_time = 0.22
+reset_time_bubing = 0.22
+reset_time_shaobing = 0.22
+
+anti_rot_judging_T = 1.5
+change_thresh = 2
+circle_time = 2.0
+gimbal_error_dis_thresh = 0.03
+
+dis_limit = 7.0
+dis_thresh = 6.0
+high_thresh = 1.0
+sight_limit = 10.0
+
+Inertia = 100 
+S_thresh = 200.0 # 过滤面积小于此值的目标
+big_aspect_thresh = 1.6 #当大装甲板处于40度时宽高比 公式m*sin(40)/n
+response_delay = 0.02
+shoot_delay = 0.080
+small_aspect_thresh = 0.8 #当小装甲板处于40度时宽高比
+S_rate_thresh = 1.3
+
+enemy_armor_type = [0, 1, 0, 0, 0, 0, 0, 0, 1]
+#               id  0, 1, 2, 3, 4, 5, 6, 7, 8
+pnp_compensate = [1.0, 1.0, 1.0]
+
+# 操作手交互相关
+collimation_x = 320
+collimation_y = 320
+switch_dis2d_ratio_thresh = 0.2
+
+[debug]
+debug_value_1 = 0.9
+debug_value_2 = 0.0
+debug_value_3 = 0.0
+debug_int_1 = 0
+debug_int_2 = 0
+
+show_prediction = false
+show_inverted_prediction = true

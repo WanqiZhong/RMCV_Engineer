@@ -30,7 +30,7 @@ void Calculator::Calculate_Run()
 {
     CalculateInit();
     umt::Subscriber<MINE_POSITION_MSG> mine_sub("anchor_point_data");
-    umt::Publisher<ANGLE_DATA_MSG> angle_pub("angle_data");
+    umt::Publisher<ANGLE_DATA_MSG> angle_pub("robot_data");
     while(mode!=HALT)
     {
         try{
@@ -43,14 +43,13 @@ void Calculator::Calculate_Run()
             cout<<"Catch HaltEvent"<<endl;
             break;
         }
-        CalculateMinePnp();
+        CalculatePnp();
         ANGLE_DATA_MSG angle_msg;
         angle_msg.angle = ypr;
-        angle_msg.position = Point3f(0,0,0);
+        angle_msg.position = position;
         angle_pub.push(angle_msg);
     }
 }
-
 
 void Calculator::CalculateInit()
 {
@@ -81,15 +80,23 @@ void Calculator::CalculateInit()
     #endif
 }
 
-void Calculator::CalculateMinePnp()
+void Calculator::CalculatePnp()
 {
-    cout<<"Start to calculate mine pnp"<<endl;
+    cout<<"Start to calculate pnp"<<endl;
     vector<Point3f> Mine3D;
     vector<Point2f> Mine2D;
-    Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,0));
-    Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,0));
-    Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,0));
-    Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
+    if(mode == GoldMode){
+        Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,0));
+        Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,0));
+        Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,0));
+        Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
+    }
+    else if(mode == ChangeSiteMode){
+        Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,50));
+        Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,50));
+        Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,50));
+        Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,50));
+    }
     Mat rvec = Mat::zeros(3,1,CV_64FC1);
     Mat tvec = Mat::zeros(3,1,CV_64FC1);
     Mat rotMat = Mat::zeros(3,1,CV_64FC1);
@@ -126,6 +133,9 @@ void Calculator::CalculateMinePnp()
         cout << "rvec: " << rvec << endl;
         cout << "tvec: " << tvec << endl;
         cout << "eulerAngle: \n" << ypr << endl;
+
+        position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
+
     }
         // for(int i=0;i<5;i++)
         // {
