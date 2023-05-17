@@ -11,21 +11,13 @@
 #include <algorithm>
 #include "umt.hpp"
 #include "data.hpp"
+#include "UVC.hpp"
 #include <thread>
 #include <chrono>
 #include <array>
 #include <string>
 #include <cstring>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <errno.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/select.h>
@@ -49,11 +41,18 @@ using namespace cv;
 class Sensor
 {
     private:
+        Logger logger =  Logger("Sensor");
         uint8_t mode=0;
-        Mat img;
-        Mat send_img;
-        std::mutex img_mtx; 
-        vector<string> cam_name = {"/dev/cam1","/dev/cam2","/dev/cam3","/dev/cam4"};
+        Mat operator_img;
+        Mat vision_img;
+        std::mutex img_mtx;
+        vector<string> cam_name = {"/dev/cam1","/dev/video0","/dev/cam2","/dev/cam3"};
+        vector<VideoCapture> cap_set; // In the front of the engineer, default 2
+        const int vision_index = 1;
+        int operator_index = 1;
+        VideoCapture vision_cap; // In the front of the engineer, default 2
+        VideoCapture operator_cap; // For operator to use , default 2
+
         #ifdef Laptop
         int side_num = 2; 
         #else 
@@ -71,6 +70,7 @@ class Sensor
         void Join();
 
         void Sensor_Run();
+        void imageRaw(int index, Mat& img);
         thread Sensor_thread;
 };
 

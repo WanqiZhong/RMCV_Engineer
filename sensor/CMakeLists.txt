@@ -13,6 +13,6 @@ set(link Threads::Threads ${link})
 set(link data ${link})
 set(link args ${link})
 
-add_library(sensor ${src})
+add_library(sensor ${src} src/UVC.cpp include/UVC.hpp)
 target_include_directories(sensor PUBLIC include)
 target_link_libraries(sensor ${link})
