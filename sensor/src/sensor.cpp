@@ -38,6 +38,7 @@ void Sensor::Sensor_Run() {
 
     }
 
+    initVideoRaw();
 
     namedWindow("operator_img", cv::WINDOW_NORMAL);
     resizeWindow("operator_img", 1200, 720);
@@ -69,7 +70,7 @@ void Sensor::Sensor_Run() {
 
         if (ecu_data.mode == 0) {
             UVC uvc(cam_name[vision_index].c_str());
-            uvc.initUVC(300);
+            uvc.initUVC(200);
             logger.info("Get Mine Mode");
         } else if (ecu_data.mode == 1) {
             UVC uvc(cam_name[vision_index].c_str());
@@ -89,6 +90,7 @@ void Sensor::Sensor_Run() {
             vision_cap >> vision_img;
             if (!vision_img.empty()) {
                 imageRaw(index++, vision_img);
+                videoRaw(vision_img);
                 imshow("vision_img", vision_img);
                 waitKey(1);
             }
@@ -115,4 +117,81 @@ void Sensor::imageRaw(int index, Mat& img){
     if(index % 10 == 0){
         imwrite("../raw/goldmine/"+std::string(timestamp)+ to_string(index) + ".jpg",img);
     }
+}
+
+void Sensor::initVideoRaw() {
+
+
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    char timestamp[20];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M-%S", std::localtime(&t_c));
+
+    for(auto num:writer_num){
+        string path = videoPathPrefix + cam_name[num];
+        fs::path dirPath = path;
+        if (fs::exists(dirPath)) {
+            logger.info("Path already exists.");
+        } else {
+            if (fs::create_directories(dirPath)) {
+                logger.info("Directory created.");
+            } else {
+                logger.critical("Failed to create directory." );
+            }
+        }
+        VideoWriter videoWriter(path + '/' + std::string(timestamp) + ".mp4", codec, fps, frameSize);
+        writer_map.insert(pair<string,VideoWriter>(cam_name[num],videoWriter));
+    }
+}
+
+void Sensor::videoRaw(cv::Mat &img) {
+
+    if(writer_map.empty()){
+        logger.info("No need to log");
+        return;
+    }
+    VideoWriter videoWriter = writer_map.at(cam_name[writer_num[0]]);
+    videoWriter.write(img);
+    if (frame_index++ >= 1800) {
+        frame_index = 0;
+
+        auto now = std::chrono::system_clock::now();
+        auto t_c = std::chrono::system_clock::to_time_t(now);
+        char timestamp[20];
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M-%S", std::localtime(&t_c));
+
+        videoWriter.release();
+
+        string path = videoPathPrefix + cam_name[writer_num[0]];
+        writer_map.at(cam_name[writer_num[0]]) = VideoWriter(path + '/' + std::string(timestamp) + ".mp4", codec, fps, frameSize);
+    }
+
+}
+
+void Sensor::videoRaw(vector<Mat> &img) {
+
+    if(writer_map.empty()){
+        logger.info("No need to log");
+        return;
+    }
+    for(int i = 0; i < writer_num.size(); i++)
+    {
+        VideoWriter videoWriter = writer_map.at(cam_name[writer_num[i]]);
+        videoWriter.write(img[i]);
+        if (frame_index >= 1800) {
+            frame_index = 0;
+
+            auto now = std::chrono::system_clock::now();
+            auto t_c = std::chrono::system_clock::to_time_t(now);
+            char timestamp[20];
+            strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M-%S", std::localtime(&t_c));
+
+            videoWriter.release();
+
+            string path = videoPathPrefix + cam_name[i];
+            writer_map.at(cam_name[i]) = VideoWriter(path + '/' + std::string(timestamp) + ".mp4", codec, fps, frameSize);
+        }
+    }
+    frame_index++;
+
 }

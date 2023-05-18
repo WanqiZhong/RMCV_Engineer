@@ -27,7 +27,11 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <filesystem>
+#include <map>
 
+
+namespace fs = std::filesystem;
 using namespace std;
 using namespace cv;
 
@@ -36,7 +40,13 @@ using namespace cv;
 #define SilverMode 1
 #define ChangeSiteMode 2
 
-#define Laptop
+const int img_raw_on = true;
+const int video_raw_on = true;
+const vector<int> writer_num = {1};
+const string videoPathPrefix = "../raw";
+const int codec = VideoWriter::fourcc('M', 'J', 'P', 'G');
+const double fps = 30.0;
+const Size frameSize = Size(1280, 720);
 
 class Sensor
 {
@@ -53,11 +63,10 @@ class Sensor
         VideoCapture vision_cap; // In the front of the engineer, default 2
         VideoCapture operator_cap; // For operator to use , default 2
 
-        #ifdef Laptop
-        int side_num = 2; 
-        #else 
-        int side_num;
-        #endif
+
+        map<string, VideoWriter> writer_map;
+        int frame_index = 0;
+
 
     public:
         Sensor(){
@@ -70,7 +79,12 @@ class Sensor
         void Join();
 
         void Sensor_Run();
+
+
         void imageRaw(int index, Mat& img);
+        void initVideoRaw();
+        void videoRaw(Mat& img);
+        void videoRaw(vector<Mat>& img);
         thread Sensor_thread;
 };
 
