@@ -36,7 +36,7 @@ class Detector
     private:
 	/* 金矿HSV参数 */
 
-        int mode=0;
+        int mode = 2;
         bool mine_flag;
         #ifndef Laptop
         int side_num; 

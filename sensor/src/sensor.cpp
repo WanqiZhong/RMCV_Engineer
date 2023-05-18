@@ -74,7 +74,7 @@ void Sensor::Sensor_Run() {
             logger.info("Get Mine Mode");
         } else if (ecu_data.mode == 1) {
             UVC uvc(cam_name[vision_index].c_str());
-            uvc.initUVC(25);
+            uvc.initUVC(30);
             logger.info("Exchange Mine Mode");
         }
 
@@ -115,7 +115,17 @@ void Sensor::imageRaw(int index, Mat& img){
     char timestamp[20];
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M-%S", std::localtime(&t_c));
     if(index % 10 == 0){
-        imwrite("../raw/goldmine/"+std::string(timestamp)+ to_string(index) + ".jpg",img);
+        fs::path dirPath = "../raw/changesite";
+        if (fs::exists(dirPath)) {
+            logger.info("Path already exists.");
+        } else {
+            if (fs::create_directories(dirPath)) {
+                logger.info("Directory created.");
+            } else {
+                logger.critical("Failed to create directory." );
+            }
+        }
+        imwrite("../raw/changesite/"+std::string(timestamp)+ to_string(index) + ".jpg",img);
     }
 }
 
