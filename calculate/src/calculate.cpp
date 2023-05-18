@@ -2,28 +2,15 @@
 
 void Calculator::Run()
 {
-    #ifndef Laptop
     logger.info("Calculator Run");
-    #else
-    cout<<"Calculator Run"<<endl;
-    #endif
     Calculator_thread = thread(&Calculator::Calculate_Run,this);
 }
 
 void Calculator::Join()
 {
-    #ifndef Laptop
     logger.info("Waiting for [Calculator]");
-    #else
-    cout<<"Waiting for [Calculator]"<<endl;
-    #endif
     Calculator_thread.join();
-    #ifndef Laptop
     logger.sinfo("[Calculator] joined");
-    #else
-    cout<<"[Calculator] joined"<<endl;
-    #endif
-
 }
 
 void Calculator::Calculate_Run()
@@ -53,31 +40,19 @@ void Calculator::Calculate_Run()
 
 void Calculator::CalculateInit()
 {
-    #ifndef OFFICIAL
-    toml::value constants = toml::parse(param.constants_path);
-    toml_to_matrix(constants.at("camera").at("F"), F);
-    toml_to_matrix(constants.at("camera").at("C"), C);
-    toml_to_matrix(constants.at("cam2pitch").at("R"), cam2pitch_R);
-    toml_to_matrix(constants.at("cam2pitch").at("T"), cam2pitch_T);
-    toml_to_matrix(constants.at("pitch2yaw").at("T"), pitch2yaw_T);
-    cam2pitch.block<3,3>(0,0) = cam2pitch_R;
-    cam2pitch.block<3,1>(0,3) = cam2pitch_T;
-    cam2pitch.block<1,4>(3,0) << 0., 0., 0., 1.;
-    if(is_WM){
-        Eigen::Matrix3d trans_to_1024;
-        trans_to_1024 << 0.625, 0, 120,
-                        0, 0.625, 120,
-                        0, 0, 1;
-        F = trans_to_1024 * F;
-    }
-    cv::eigen2cv(F,CameraMatrix);
-    cv::eigen2cv(C,DistCoeffs);
-    #else
-    CameraMatrix = (Mat_<double>(3,3) << 1273.5096931699643, 0.0, 281.6342455704224 , 
+//    Eigen::Matrix<double, 3, 3> F;
+//    Eigen::Matrix<double, 3, 1> C;
+//    toml::value constants = toml::parse(param.constants_path);
+//    toml_to_matrix(constants.at("camera").at("F"), F);
+//    toml_to_matrix(constants.at("camera").at("C"), C);
+//    cv::eigen2cv(F,CameraMatrix);
+//    cv::eigen2cv(C,DistCoeffs);
+//    #else
+    CameraMatrix = (Mat_<double>(3,3) << 1273.5096931699643, 0.0, 281.6342455704224 ,
                                             0.0, 1274.412923337173, 356.51342207682484,
                                         0.0, 0.0, 1.0);
     DistCoeffs = (Mat_<double>(1,5) << -0.22375498735597868, 0.28173237030830756, 0.0023061024316095753, -0.002034056774360411, -2.3013327557759515);
-    #endif
+//    #endif
 }
 
 void Calculator::CalculatePnp()
@@ -102,7 +77,7 @@ void Calculator::CalculatePnp()
     Mat rotMat = Mat::zeros(3,1,CV_64FC1);
     Eigen::Matrix<double, 3, 3> R;
     Eigen::Matrix<double, 3, 1> T;
-    cout<<"anchor_point:"<<anchor_point.size()<<" "<<anchor_point[0].size()<<endl;
+    logger.info("anchor_point:set_dim0:{},set_dim1:{}", anchor_point.size(), anchor_point[0].size());
     for(int i = 0; i < 1; ++i){
         for(int j = 0; j < anchor_point[i].size(); ++j){
             Mine2D.push_back(anchor_point[i][j]);
@@ -130,9 +105,16 @@ void Calculator::CalculatePnp()
 
         ypr = ypr / M_PI * 180.0;
 
-        cout << "rvec: " << rvec << endl;
-        cout << "tvec: " << tvec << endl;
-        cout << "eulerAngle: \n" << ypr << endl;
+
+        for(int i = 0; i < rvec.size[0]; i ++){
+            logger.critical("rvec: ", rvec.at<double>(i, 0));
+        }
+        for(int i = 0; i < tvec.size[0]; i ++){
+            logger.critical("tvec: ", tvec.at<double>(i, 0));
+        }
+        for(int i = 0; i < 3; i ++){
+            logger.critical("ypr: ", ypr(i));
+        }
 
         position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
 

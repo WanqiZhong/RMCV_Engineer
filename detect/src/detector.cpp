@@ -3,29 +3,14 @@
 
 void Detector::Run()
 {
-    #ifndef Laptop
     logger.info("Detector Run");
-    #else
-    cout<<"Detector Run"<<endl;
-    #endif
     Detector_thread = thread(&Detector::Detect_Run,this);
 }
 
-void Detector::Join()
-{
-    #ifndef Laptop
+void Detector::Join() {
     logger.info("Waiting for [Detector]");
-    #else
-    cout<<"Waiting for [Detector]"<<endl;
-    #endif
-    
     Detector_thread.join();
-    
-    #ifndef Laptop
     logger.info("[Detector] joined");
-    #else
-    cout<<"[Detector] joined"<<endl;
-    #endif
 }
 
 void Detector::Detect_Run()
@@ -47,12 +32,10 @@ void Detector::Detect_Run()
             }
             else
             {
-                cout<<"pop empty img"<<endl;
+                logger.warn("Sub pop empty img");
                 receive_flag = 0;
             }
-            // imshow("img",img);
-            // waitKey(1);
-            cout<<"Receive"<<endl;
+            logger.info("Receive img");
             std::this_thread::sleep_for(std::chrono::milliseconds(int(1000. /30)));
         }
         catch(const HaltEvent&){
@@ -65,30 +48,25 @@ void Detector::Detect_Run()
                 if(first_flag)
                 {
                     first_flag = 0;
-                    cout<<"run in Goldmine"<<endl; 
+                    logger.debug("Detect run in Goldmine");
                 }
-                // imshow("img_empty",img);
-                // cout<<img.empty()<<endl;
-                // logger.info("empty");
-                // GoldMineDetect_Run(img);
-                anchor_point.clear();
-                gold_mine_contours_2.clear();
                 GoldMineDetect_Run2(img);
                 if(anchor_point.empty())
                 {
-                    // logger.info("No anchor point");
-                   cout<<"No anchor point"<<endl;
+                     logger.info("No anchor point");
                 }
                 else
+                {
                     mine_sub.push(MINE_POSITION_MSG{.goal=anchor_point});
-                // logger.info("GoldMineDetect_Run");
+                    logger.info("GoldMineDetect_Run --> Control");
+                }
             }
             else if(mode==SilverMode)
             {
                 if(first_flag)
                 {
                     first_flag = 0;
-                    cout<<"\033[33mrun in Silvermine\033[0m"<<endl;
+                    logger.debug("Detect run in Silvermine");
                 }
                 SilverMineDetect_Run(img);
                 // mine_sub.push(MINE_POSITION_MSG(silver_mine_rect));
@@ -99,13 +77,23 @@ void Detector::Detect_Run()
                 if(first_flag)
                 {
                     first_flag = 0;
-                    cout<<"\033[31mrun in ChangeSite\033[0m"<<endl;
+                    logger.debug("Detect run in ChangeSite");
                 }
-                // ChangeSiteDetect_Run(img);
+                ExchangeSite_Run(img);
+                if(anchor_point.empty())
+                {
+                    logger.info("No anchor point");
+                }
+                else
+                {
+                    std::reverse(anchor_point.begin(), anchor_point.end());
+                    mine_sub.push(MINE_POSITION_MSG{.goal=anchor_point});
+                    logger.info("GoldMineDetect_Run --> Control");
+                }
             }
             else
             {
-                // logger.info("Detector mode error");
+                 logger.critical("Detector mode error");
             }
         }
         
@@ -128,7 +116,6 @@ void Detector::img_light_enhance(Mat &img, Mat &img_hsv){
         int rows = img.rows;
         int cols = img.cols;
         int max_val = 255;
-
 
 
         cvtColor(img, img, COLOR_BGR2HSV);  // 将BGR颜色空间转换为HSV颜色空间
@@ -235,6 +222,8 @@ void Detector::GoldMineDetect_Run(Mat &img)
 
 void Detector::GoldMineDetect_Run2(Mat &img)
 {
+    anchor_point.clear();
+    gold_mine_contours_2.clear();
     RotatedRect gold_mine_rec;
     // polycontours.clear();
     // find_gold_mine_2(img);
@@ -296,6 +285,33 @@ void Detector::SilverMineDetect_Run(Mat &img)
         //imgs.push_back(output);
     }
 }
+
+
+
+void Detector::ExchangeSite_Run(Mat &img) {
+    station_contours.clear();
+    square_contour.clear();
+    anchor_point.clear();
+    find_site_corner(img);
+    if (station_contours.size() == 0)
+    {
+        logger.warn("ExchangeSite_Run can't find normal corner");
+    }
+    else if (sizeof(square_contour) == 0)
+    {
+        logger.warn("ExchangeSite_Run can't find square corner");
+    }
+    else
+    {
+        get_station_side(img);
+    }
+}
+
+
+
+
+
+
 
 /// @brief process the RGB image to get the contours(include inRange, morphologyEx, GaussianBlur, Canny, findContours)
 /// @param img current RGB frame image
@@ -1219,3 +1235,117 @@ void Detector::get_white_corner(Mat &img, vector<vector<Point>> corner_contour)
     }
 }
 
+
+/// @brief find red corners of exchange station
+/// @param img, the original picture
+/// @param corner_contour, to store points of corners' contours;
+/// @param square_corner_contour, to store points of square corner's contour;
+void Detector::find_site_corner(Mat &img)
+{
+    Mat output;
+
+    //图像预处理，得到角点
+    cvtColor(img, output, COLOR_BGR2HSV);
+    inRange(output, Scalar(130, 0, 170), Scalar(180, 255, 255), output);//red
+    //inRange(output, Scalar(78, 72, 147), Scalar(122, 255, 255), output);//blue
+
+    // Mat kernel_middle = getStructuringElement(MORPH_RECT, Size(5, 5));
+    Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
+    morphologyEx(output, output, MORPH_CLOSE, kernel, Point(-1, -1), 2);
+    //  dilate(output, output, kernel, Point(-1, -1), 3);
+    //  erode(output, output, kernel, Point(-1, -1), 3);
+    morphologyEx(output, output, MORPH_OPEN, kernel, Point(-1, -1), 2);
+    medianBlur(output, output, 3);
+
+    imshow("output", output);
+
+    //寻找角点轮廓
+    vector<vector<Point>> contours;
+    vector<Vec4i> hierarchy;
+    findContours(output, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+
+    min_corner_index = 0;
+    double min_corner_area = 10000;
+    for (int i = 0; i < contours.size(); i++)
+    {
+        RotatedRect rec = minAreaRect(contours[i]);
+        double rate = float(rec.size.width) / float(rec.size.height);
+        double area = float(rec.size.width) * float(rec.size.height);
+        // cout << "area:" << area << endl;
+        // cout << "rate:" << rate << endl;
+
+        //通过旋转矩形面积、长宽比、矩形与角点轮廓的面积比来筛选角点
+        if (rate >= 0.4 && rate <= 2.5 && area >= 800 && area <= 10000 && contourArea(contours[i]) / area <= 0.65)
+        {
+            //将四个角点座标放入同一个容器中
+            for (int j = 0; j < contours[i].size(); j++)
+            {
+                station_contours.push_back(contours[i][j]);
+            }
+            //选出面积最小的角点（即右上角角点）
+            if (contourArea(contours[i]) < min_corner_area)
+            {
+                min_corner_area = contourArea(contours[i]);
+                min_corner_index = i;
+            }
+            // cout << "area:" << area << endl;
+            // cout << "contour/rec rate:" << contourArea(contours[i]) / area << endl;
+            // Point2f p[4];
+            // rec.points(p);
+            // for (int i = 0; i < 4; i++)
+            // {
+            //     line(img, p[i], p[(i + 1) % 4], Scalar(255, 0, 0));
+            // }
+        }
+        //提取右上角角点的一个点单独储存，用于后续按顺序输出角点座标
+        square_contour.push_back(contours[i][0]);
+    }
+}
+
+
+
+/// @brief get coordinates of exchange station
+/// @param img, the original picture
+/// @param corner_contour, points of corners' contours;
+/// @param square_corner_contour, points of square corner's contour;
+void Detector::get_station_side(Mat &img)
+{
+    double len[4] = {0};
+    vector<Point> anchor_temp;
+
+    vector<Point> hull;
+    vector<Point> poly;
+
+    //通过凸包和多边形拟合框出四个角点
+    convexHull(Mat(station_contours), hull, false);
+    approxPolyDP(hull, poly, 25, true);
+
+    if (poly.size() == 4)
+    {
+
+        for (int i = 0; i < 4; i++) // 计算各角点到正方形点的距离
+        {
+            len[i] = sqrt((poly[i].x - square_contour[0].x) * (poly[i].x - square_contour[0].x) + (poly[i].y - square_contour[0].y) * (poly[i].y - square_contour[0].y));
+        }
+        double len_min = len[0];
+        int min_index = 0;
+        for (int i = 1; i < 4; i++) // 找到最小距离
+        {
+            if (len[i] < len_min)
+            {
+                len_min = len[i];
+                min_index = i;
+            }
+        }
+        //从右上角开始输出角点
+        for (int i = 0; i < 4; i++)
+        {
+            cout << poly[(min_index + i) % 4] << endl;
+            anchor_temp.push_back(poly[(min_index + i) % 4]);
+        }
+        anchor_point.push_back(anchor_temp);
+        polylines(img, poly, true, Scalar(0, 255, 0), 2, 8, 0);
+    }
+    else
+        logger.warn("Wrong number of poly:{}", poly.size());
+}

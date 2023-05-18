@@ -18,6 +18,7 @@
 #include "data.hpp"
 #include "umt.hpp"
 #include <thread>
+#include <log.hpp>
 #include <chrono>
 #include <array>
 #include <string>
@@ -38,7 +39,8 @@ const int HALF_LENGTH = 75;
 
 class Calculator
 {
-    private: 
+    private:
+        Logger logger = Logger("Calculator");
         uint8_t mode=0;
         vector<vector<Point>> anchor_point;
         Mat CameraMatrix;

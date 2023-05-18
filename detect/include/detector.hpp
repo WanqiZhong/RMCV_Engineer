@@ -11,6 +11,7 @@
 #include <algorithm>
 #include "umt.hpp"
 #include "data.hpp"
+#include <log.hpp>
 #include <thread>
 #include <chrono>
 #include <array>
@@ -35,16 +36,11 @@ class Detector
 {
     private:
 	/* 金矿HSV参数 */
-
+        Logger logger = Logger("Detector");
         int mode = 2;
         bool mine_flag;
-        #ifndef Laptop
-        int side_num; 
-        #else 
         int side_num = 2;
-        #endif
-    
-        
+
         vector<vector<Point>> gold_mine_contours;  //金矿轮廓 
         vector<Vec4i> gold_mine_hierarchy; //金矿轮廓层次
         vector<Rect> gold_mine_whole_rect; //金矿标识角
@@ -61,6 +57,10 @@ class Detector
         vector<Rect> silver_mine_rect; //银矿外侧轮廓
         vector<vector<Point>> silver_mine_contours;  //银矿标识
         vector<int> corner_number;
+
+        int min_corner_index;
+        vector<Point> station_contours;
+        vector<Point> square_contour;
         
         
     public:
@@ -89,6 +89,7 @@ class Detector
         void GoldMineDetect_Run(Mat &img);
         void GoldMineDetect_Run2(Mat &img);
         void SilverMineDetect_Run(Mat &img);
+        void ExchangeSite_Run(Mat &img);
 
 
         void Detect_Run();
@@ -120,6 +121,9 @@ class Detector
         void process_white_corner(Mat &img, int thresh, int maxual,vector<vector<Point>> &corner_contour);
         void get_white_corner(Mat &img, vector<vector<Point>> corner_contour);
 
+        /* ExchangeSite  */
+        void find_site_corner(Mat &img);
+        void get_station_side(Mat &img);
 
 };
 

@@ -79,8 +79,6 @@ class Sensor
         void Join();
 
         void Sensor_Run();
-
-
         void imageRaw(int index, Mat& img);
         void initVideoRaw();
         void videoRaw(Mat& img);
