@@ -27,8 +27,8 @@
 using namespace std;
 using namespace cv;
 
-const int LENGTH = 150;
-const int HALF_LENGTH = 75;
+const float LENGTH = 275;
+const float HALF_LENGTH = 275.0 / 2;
 
 #define HALT -1
 #define GoldMode 0
@@ -41,7 +41,7 @@ class Calculator
 {
     private:
         Logger logger = Logger("Calculator");
-        uint8_t mode=0;
+        uint8_t mode = 2;
         vector<vector<Point>> anchor_point;
         Mat CameraMatrix;
         Mat DistCoeffs;
@@ -53,8 +53,8 @@ class Calculator
                                               -1, 0, 0,
                                                0,-1, 0);
         Mat final_Tvec = (Mat_<double>(3,1) << -L, 0, H); // 相机与吸盘转换矩阵
-        Eigen::Vector3d ypr;
-        Mat position;
+        Eigen::Vector3d ypr = Eigen::Vector3d(0,0,0);
+        Mat position = (Mat_<double>(3,1) << 0, 0, 0);
         int view_type = 0;
         thread Calculator_thread;
 

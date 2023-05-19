@@ -17,7 +17,7 @@ using namespace cv;
 int main(int argc, char **argv)
 {
     Logger logger("main");
-    int mode = 0;
+    int mode = 2;
     if(argc>=2)
         mode = atoi(argv[1]);
     
@@ -25,16 +25,16 @@ int main(int argc, char **argv)
 
     Sensor sensor;
     sensor.Run();
-    // Detector detect(mode);
-    // detect.Run();
-    // Calculator calculate;
-    // calculate.Run();
+    Detector detect(mode);
+    detect.Run();
+    Calculator calculate;
+    calculate.Run();
     Bridge bridge;
     bridge.Run();
 
     sensor.Join();
-    // detect.Join();
-    // calculate.Join();
+    detect.Join();
+    calculate.Join();
     bridge.Join();
     
     while(mode != HALT) {
