@@ -84,7 +84,6 @@ enum armor_type {
 //收imu信息
 
 #pragma pack(1)
-
 struct pure_IMU{
     float roll,pitch,yaw;
     pure_IMU(){
@@ -116,7 +115,6 @@ struct IMU_DATA_MSG{
     uint8_t mode;
     double time_stamp;
 };
-
 #pragma pack()
 
 struct SENSOR_DATA_MSG
@@ -181,6 +179,7 @@ struct HEART_BEAT
     TYPE type;
 };
 
+#pragma pack(1)
 struct ANGLE_DATA_MSG
 {
     uint8_t is_valid;
@@ -191,10 +190,10 @@ struct ANGLE_DATA_MSG
     float roll;
     float pitch;
     float yaw;
-
 //    cv::Mat position;
 //    Eigen::Vector3d angle;
 };
+#pragma pack()
 
 struct MINE_POSITION_MSG
 {

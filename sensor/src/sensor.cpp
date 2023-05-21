@@ -1,6 +1,5 @@
 #include "sensor.hpp"
 
-
 void Sensor::Run()
 {
     logger.info("Sensor Run");
@@ -131,7 +130,6 @@ void Sensor::imageRaw(int index, Mat& img){
 }
 
 void Sensor::initVideoRaw() {
-
 
     auto now = std::chrono::system_clock::now();
     auto t_c = std::chrono::system_clock::to_time_t(now);
