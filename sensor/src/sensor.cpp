@@ -52,12 +52,13 @@ void Sensor::Sensor_Run() {
             ecu_data_try = receive_sub.try_pop();
             if (ecu_data_try.first == true) {
                 ecu_data = ecu_data_try.second;
+                logger.warn("cam_id:{}",ecu_data.cam_id);
+                logger.warn("cam_id:{}",ecu_data.mode);
             } else {
                 ecu_data.cam_id = 1;
                 ecu_data.mode = 1;
-                ecu_data.position_id = 0;
+//                ecu_data.position_id = 0;
             }
-            logger.warn("ECU_DATA reiceve error!");
         } catch (exception e) {
             logger.warn("ECU_DATA reiceve error!");
         }

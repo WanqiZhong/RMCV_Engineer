@@ -32,9 +32,18 @@ void Calculator::Calculate_Run()
         }
         CalculatePnp();
         ANGLE_DATA_MSG angle_msg;
-        angle_msg.angle = ypr;
-        angle_msg.position = position;
-        angle_pub.push(angle_msg);
+        angle_msg.is_valid = 1;
+        angle_msg.ratation_right = 1;
+        // change to float
+        angle_msg.roll = float(ypr[2]);
+        angle_msg.pitch = float(ypr[1]);
+        angle_msg.yaw = float(ypr[0]);
+        // get float position
+        angle_msg.x = float(position.ptr<double>(0)[0]);
+        logger.info("angle_msg: x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",angle_msg.x,angle_msg.y,angle_msg.z,angle_msg.roll,angle_msg.pitch,angle_msg.yaw);
+        // angle_msg.angle = ypr;
+        // angle_msg.position = position;
+        angle_pub.push(anglfloate_msg);
     }
 }
 
@@ -116,7 +125,9 @@ void Calculator::CalculatePnp()
             logger.critical("ypr: ", ypr(i));
         }
 
-        position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
+        std::reverse(tvec.begin(), tvec.end());
+
+//        position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
 
     }
         // for(int i=0;i<5;i++)

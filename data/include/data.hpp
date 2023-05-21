@@ -109,12 +109,14 @@ struct pure_IMU{
         yaw+=b.yaw;
     }
 };
+
 struct IMU_DATA_MSG{
     uint8_t cam_id;
-    uint8_t position_id;
+//    uint8_t position_id;
     uint8_t mode;
     double time_stamp;
 };
+
 #pragma pack()
 
 struct SENSOR_DATA_MSG
@@ -181,8 +183,17 @@ struct HEART_BEAT
 
 struct ANGLE_DATA_MSG
 {
-    cv::Mat position;
-    Eigen::Vector3d angle;
+    uint8_t is_valid;
+    uint8_t ratation_right;
+    float x;
+    float y;
+    float z;
+    float roll;
+    float pitch;
+    float yaw;
+
+//    cv::Mat position;
+//    Eigen::Vector3d angle;
 };
 
 struct MINE_POSITION_MSG

@@ -138,7 +138,7 @@ void serial_send() {
     try {
     Logger logger("SerialSender");
     RmSerial serial0;
-    umt::Subscriber<IMU_DATA_MSG> send_sub("robot_data");
+    umt::Subscriber<ANGLE_DATA_MSG> send_sub("robot_data");
     umt::Publisher<HEART_BEAT> HB_pub("BridgeSend_HB");
     int HB_cnt = 0;
 #ifdef PERF
@@ -149,15 +149,16 @@ void serial_send() {
 #ifdef PERF
         recorder.start();
 #endif
-        IMU_DATA_MSG data_send;
+        ANGLE_DATA_MSG data_send;
         try {
             HB_pub.push(HEART_BEAT{HEART_BEAT::TYPE::WAIT});
             data_send = send_sub.pop();
+
             HB_pub.push(HEART_BEAT{HEART_BEAT::TYPE::CONTD});
         } catch(const HaltEvent&) {
             break;
         }
-        if (!serial0.send_data((uint8_t *)&data_send, sizeof(IMU_DATA_MSG))){
+        if (!serial0.send_data((uint8_t *)&data_send, sizeof(ANGLE_DATA_MSG))){
             logger.warn("Send failed!");
         }
         if(HB_cnt>50){
