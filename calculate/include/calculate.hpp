@@ -23,7 +23,6 @@
 #include <array>
 #include <string>
 #include <cstring>
-#include "matrix_utils.hpp"
 
 using namespace std;
 using namespace cv;

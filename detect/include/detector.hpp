@@ -37,7 +37,6 @@ class Detector
     private:
 	/* 金矿HSV参数 */
         Logger logger = Logger("Detector");
-        int mode = 2;
         bool mine_flag;
         int side_num = 2;
 
@@ -74,10 +73,7 @@ class Detector
         int contrast = 37;
         int bright = 18;
         
-        Detector(int mode)
-        {
-            this->mode = mode;
-        };
+        Detector(){};
         ~Detector(){};
         
 

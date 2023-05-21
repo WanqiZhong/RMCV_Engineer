@@ -55,10 +55,14 @@ void Calculator::CalculateInit()
 //   toml_to_matrix(constants.at("camera").at("C"), C);
 //   cv::eigen2cv(F,CameraMatrix);
 //   cv::eigen2cv(C,DistCoeffs);
-    CameraMatrix = (Mat_<double>(3,3) << 1273.5096931699643, 0.0, 281.6342455704224 ,
-                                        0.0, 1274.412923337173, 356.51342207682484,
-                                        0.0, 0.0, 1.0);
-    DistCoeffs = (Mat_<double>(1,5) << -0.22375498735597868, 0.28173237030830756, 0.0023061024316095753, -0.002034056774360411, -2.3013327557759515);
+    // CameraMatrix = (Mat_<double>(3,3) << 1273.5096931699643, 0.0, 281.6342455704224 ,
+    //                                     0.0, 1274.412923337173, 356.51342207682484,
+    //                                     0.0, 0.0, 1.0);
+    // DistCoeffs = (Mat_<double>(1,5) << -0.22375498735597868, 0.28173237030830756, 0.0023061024316095753, -0.002034056774360411, -2.3013327557759515);
+    CameraMatrix = (Mat_<double>(3,3) << 590.057431, 0.000000, 628.940684,
+                                        0.000000, 590.227016, 358.945741, 
+                                        0.000000, 0.000000, 1.000000);
+    DistCoeffs = (Mat_<double>(1,5) << 0.048251, -0.049567, -0.000578, -0.000505, 0.016714);
 }
 
 void Calculator::CalculatePnp()
@@ -74,9 +78,9 @@ void Calculator::CalculatePnp()
     }
     else if(mode == ExchangeSiteMode){
         Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,50));
-        Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,50));
-        Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,50));
         Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,50));
+        Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,50));
+        Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,50));
     }
     Mat rvec = Mat::zeros(3,1,CV_64FC1);
     Mat tvec = Mat::zeros(3,1,CV_64FC1);
@@ -92,7 +96,7 @@ void Calculator::CalculatePnp()
         }
         solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec);
         cout<<"revc"<<rvec<<endl;
-        Rodrigues(rvec, rotMat);  
+        Rodrigues(rvec, rotMat);    
         cout<<"rotMat"<<rotMat<<endl;
         //由于solvePnP返回的是旋转向量，故用罗德里格斯变换变成旋转矩阵
         cv::cv2eigen(rotMat, R);

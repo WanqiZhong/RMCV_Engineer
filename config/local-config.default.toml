@@ -1,5 +1,5 @@
 # Global
-run_mode = "EXCHANGE_SITE_MODE" # default run mode
+run_mode = "MINE_MODE" # default run mode
 
 [predictor]
 constants = "engineer.toml" # Predictor相关常数文件

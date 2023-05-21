@@ -60,6 +60,8 @@ void Sensor::Sensor_Run() {
         } catch (exception e) {
             logger.warn("ECU_DATA reiceve error!");
         }
+        ecu_data.cam_id = 1;
+        ecu_data.mode = 2;
 
         // Set operator camera index when ecu data changed
         if(ecu_data.cam_id % 4 != param.operator_cam_index){
@@ -76,6 +78,8 @@ void Sensor::Sensor_Run() {
             logger.warn("Mode change to: {}", param.get_run_mode());
             setCamera(ecu_data.mode);
         }
+
+        setCamera(2);
 
         // Set camera index
         vision_cap = cap_set[param.operator_cam_index];
@@ -210,7 +214,7 @@ void Sensor::setCamera(int mode) {
         logger.info("Change to get mine mode.");
     } else if (mode == 2) {
         UVC uvc(cam_name_maps[param.vision_cam_index].c_str());
-        uvc.initUVC(30);
+        uvc.initUVC(20);
         logger.info("Change to exchange mine mode.");
     }
 }

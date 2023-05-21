@@ -21,7 +21,7 @@ int main(int argc, char **argv)
         param.set_run_mode((MODE)atoi(argv[1]));
     Sensor sensor;
     sensor.Run();
-    Detector detect(param.get_run_mode());
+    Detector detect;
     detect.Run();
     Calculator calculate;
     calculate.Run();

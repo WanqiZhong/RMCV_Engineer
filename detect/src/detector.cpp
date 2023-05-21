@@ -20,7 +20,7 @@ void Detector::Detect_Run()
     int first_flag = 1;
     umt::Subscriber<cv::Mat> sub("channel0");
     umt::Publisher<MINE_POSITION_MSG> mine_sub("anchor_point_data");
-    while(mode!=HALT)
+    while(param.get_run_mode()!=HALT)
     {
         try{
             img = sub.pop();
@@ -43,7 +43,7 @@ void Detector::Detect_Run()
         }
         if(receive_flag && !img.empty())
         {
-            if(mode==GoldMode)
+            if(param.get_run_mode()==GoldMode)
             {
                 if(first_flag)
                 {
@@ -61,7 +61,7 @@ void Detector::Detect_Run()
                     logger.info("GoldMineDetect_Run --> Control");
                 }
             }
-            else if(mode==SilverMode)
+            else if(param.get_run_mode()==SilverMode)
             {
                 if(first_flag)
                 {
@@ -72,8 +72,9 @@ void Detector::Detect_Run()
                 // mine_sub.push(MINE_POSITION_MSG(silver_mine_rect));
                 // logger.info("SilverMineDetect_Run");
             }
-            else if(mode==ExchangeSiteMode)
+            else if(param.get_run_mode()==ExchangeSiteMode)
             {
+                logger.warn("Test");
                 if(first_flag)
                 {
                     first_flag = 0;
