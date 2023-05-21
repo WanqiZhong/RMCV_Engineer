@@ -32,18 +32,21 @@ void Calculator::Calculate_Run()
         }
         CalculatePnp();
         ANGLE_DATA_MSG angle_msg;
-        angle_msg.is_valid = 1;
-        angle_msg.ratation_right = 1;
+        angle_msg.is_valid = true;
+        angle_msg.ratation_right = true;
         // change to float
         angle_msg.roll = float(ypr[2]);
         angle_msg.pitch = float(ypr[1]);
         angle_msg.yaw = float(ypr[0]);
-        // get float position
-        angle_msg.x = float(position.ptr<double>(0)[0]);
-        logger.info("angle_msg: x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",angle_msg.x,angle_msg.y,angle_msg.z,angle_msg.roll,angle_msg.pitch,angle_msg.yaw);
+        cout<<"Position: " << position << endl;
+        cout<<"Angle: "<< position.ptr<double>(0)[0] <<endl;
+        angle_msg.x = float(position.at<float>(0,0));
+        angle_msg.y = float(position.at<float>(1,0));
+        angle_msg.z = float(position.at<float>(2,0));
         // angle_msg.angle = ypr;
         // angle_msg.position = position;
-        angle_pub.push(anglfloate_msg);
+        logger.critical("angle_msg: x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",angle_msg.x,angle_msg.y,angle_msg.z,angle_msg.roll,angle_msg.pitch,angle_msg.yaw);
+        angle_pub.push(angle_msg);
     }
 }
 
@@ -99,6 +102,7 @@ void Calculator::CalculatePnp()
         //由于solvePnP返回的是旋转向量，故用罗德里格斯变换变成旋转矩阵
         cv::cv2eigen(rotMat, R);
         cv::cv2eigen(tvec, T);
+        cout<< "tvec" << tvec <<endl;
         // Eigen::Vector3d eulerAngle = R.eulerAngles(2, 1, 0);
         Eigen::Vector3d n = R.col(0);
         Eigen::Vector3d o = R.col(1);
@@ -113,21 +117,22 @@ void Calculator::CalculatePnp()
         ypr(2) = r;
 
         ypr = ypr / M_PI * 180.0;
+        cout<< ypr <<endl;
 
 
-        for(int i = 0; i < rvec.size[0]; i ++){
-            logger.critical("rvec: ", rvec.at<double>(i, 0));
-        }
-        for(int i = 0; i < tvec.size[0]; i ++){
-            logger.critical("tvec: ", tvec.at<double>(i, 0));
-        }
-        for(int i = 0; i < 3; i ++){
-            logger.critical("ypr: ", ypr(i));
-        }
+        // for(int i = 0; i < rvec.size[0]; i ++){
+        //     logger.critical("rvec: ", rvec.at<double>(i, 0));
+        // }
+        // for(int i = 0; i < tvec.size[0]; i ++){
+        //     logger.critical("tvec: ", tvec.at<double>(i, 0));
+        // }
+        // for(int i = 0; i < 3; i ++){
+        //     logger.critical("ypr: ", ypr(i));
+        // }
 
-        std::reverse(tvec.begin(), tvec.end());
+        // std::reverse(tvec.begin(), tvec.end());
 
-//        position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
+    //  position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
 
     }
         // for(int i=0;i<5;i++)

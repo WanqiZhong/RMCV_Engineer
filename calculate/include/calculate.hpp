@@ -27,8 +27,8 @@
 using namespace std;
 using namespace cv;
 
-const int LENGTH = 150;
-const int HALF_LENGTH = 75;
+const float LENGTH = 275;
+const float HALF_LENGTH = 275.0 / 2;
 
 #define HALT -1
 #define GoldMode 0
@@ -41,7 +41,7 @@ class Calculator
 {
     private:
         Logger logger = Logger("Calculator");
-        uint8_t mode=0;
+        uint8_t mode = 2;
         vector<vector<Point>> anchor_point;
         Mat CameraMatrix;
         Mat DistCoeffs;

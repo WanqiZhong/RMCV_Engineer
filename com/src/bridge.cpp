@@ -153,7 +153,7 @@ void serial_send() {
         try {
             HB_pub.push(HEART_BEAT{HEART_BEAT::TYPE::WAIT});
             data_send = send_sub.pop();
-
+            logger.critical("{}",data_send.yaw);
             HB_pub.push(HEART_BEAT{HEART_BEAT::TYPE::CONTD});
         } catch(const HaltEvent&) {
             break;
