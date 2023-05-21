@@ -50,6 +50,8 @@ raw/
 
 # IntelliJ
 out/
+raw/
+logs/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
