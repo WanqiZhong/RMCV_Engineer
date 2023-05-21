@@ -38,13 +38,9 @@ void Calculator::Calculate_Run()
         angle_msg.roll = float(ypr[2]);
         angle_msg.pitch = float(ypr[1]);
         angle_msg.yaw = float(ypr[0]);
-        cout<<"Position: " << position << endl;
-        cout<<"Angle: "<< position.ptr<double>(0)[0] <<endl;
-        angle_msg.x = float(position.at<float>(0,0));
-        angle_msg.y = float(position.at<float>(1,0));
-        angle_msg.z = float(position.at<float>(2,0));
-        // angle_msg.angle = ypr;
-        // angle_msg.position = position;
+        angle_msg.x = float(position[0]);
+        angle_msg.y = float(position[1]);
+        angle_msg.z = float(position[2]);
         logger.critical("angle_msg: x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",angle_msg.x,angle_msg.y,angle_msg.z,angle_msg.roll,angle_msg.pitch,angle_msg.yaw);
         angle_pub.push(angle_msg);
     }
@@ -52,19 +48,17 @@ void Calculator::Calculate_Run()
 
 void Calculator::CalculateInit()
 {
-//    Eigen::Matrix<double, 3, 3> F;
-//    Eigen::Matrix<double, 3, 1> C;
-//    toml::value constants = toml::parse(param.constants_path);
-//    toml_to_matrix(constants.at("camera").at("F"), F);
-//    toml_to_matrix(constants.at("camera").at("C"), C);
-//    cv::eigen2cv(F,CameraMatrix);
-//    cv::eigen2cv(C,DistCoeffs);
-//    #else
+//   Eigen::Matrix<double, 3, 3> F;
+//   Eigen::Matrix<double, 1, 5> C;
+//   toml::value constants = toml::parse(param.constants_path);
+//   toml_to_matrix(constants.at("camera").at("F"), F);
+//   toml_to_matrix(constants.at("camera").at("C"), C);
+//   cv::eigen2cv(F,CameraMatrix);
+//   cv::eigen2cv(C,DistCoeffs);
     CameraMatrix = (Mat_<double>(3,3) << 1273.5096931699643, 0.0, 281.6342455704224 ,
-                                            0.0, 1274.412923337173, 356.51342207682484,
+                                        0.0, 1274.412923337173, 356.51342207682484,
                                         0.0, 0.0, 1.0);
     DistCoeffs = (Mat_<double>(1,5) << -0.22375498735597868, 0.28173237030830756, 0.0023061024316095753, -0.002034056774360411, -2.3013327557759515);
-//    #endif
 }
 
 void Calculator::CalculatePnp()
@@ -78,7 +72,7 @@ void Calculator::CalculatePnp()
         Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,0));
         Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
     }
-    else if(mode == ChangeSiteMode){
+    else if(mode == ExchangeSiteMode){
         Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,50));
         Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,50));
         Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,50));
@@ -87,6 +81,7 @@ void Calculator::CalculatePnp()
     Mat rvec = Mat::zeros(3,1,CV_64FC1);
     Mat tvec = Mat::zeros(3,1,CV_64FC1);
     Mat rotMat = Mat::zeros(3,1,CV_64FC1);
+    Mat cvPosition = Mat::zeros(3,1,CV_64FC1);
     Eigen::Matrix<double, 3, 3> R;
     Eigen::Matrix<double, 3, 1> T;
     logger.info("anchor_point:set_dim0:{},set_dim1:{}", anchor_point.size(), anchor_point[0].size());
@@ -132,7 +127,11 @@ void Calculator::CalculatePnp()
 
         // std::reverse(tvec.begin(), tvec.end());
 
-    //  position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
+        // position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
+        cvPosition = final_Rvec * tvec + final_Tvec;
+        cout<<"cvPosition: "<<cvPosition<<endl;
+        cv::cv2eigen(cvPosition, position);
+        cout<<"Position: "<<position<<endl;
 
     }
         // for(int i=0;i<5;i++)

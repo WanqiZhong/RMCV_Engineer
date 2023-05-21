@@ -22,13 +22,13 @@ void Sensor::Sensor_Run() {
     umt::Publisher<cv::Mat> pub("channel0");
     umt::Subscriber<IMU_DATA_MSG> receive_sub("Electric_Data");
 
-    for(int i=0; i < 4; i++){
-        UVC uvc(cam_name[i].c_str());
-        uvc.initUVC(300);
+    for(int i=0; i < cam_name_maps.size(); i++){
+        UVC uvc(cam_name_maps.at(i).c_str());
+        uvc.initUVC(200);
     }
 
-    for(int i= 0; i < 4; i++){
-        VideoCapture cap(cam_name[i], CAP_V4L);
+    for(int i= 0; i < cam_name_maps.size(); i++){
+        VideoCapture cap(cam_name_maps[i], CAP_V4L);
         cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
         cap.set(CAP_PROP_FPS, 30);
         cap.set(CAP_PROP_FRAME_WIDTH, 1280);
@@ -38,53 +38,52 @@ void Sensor::Sensor_Run() {
     }
 
     initVideoRaw();
-
+    setCamera(param.get_run_mode());
     namedWindow("operator_img", cv::WINDOW_NORMAL);
     resizeWindow("operator_img", 1200, 720);
     moveWindow("operator_img", 0, 0);
 
-    while (mode != HALT)
+    while (param.get_run_mode() != HALT)
     {
-        logger.info("Vision Online");
+        logger.info("Vision Online!");
 
+        // Pop electric control data
         try {
             ecu_data_try = receive_sub.try_pop();
             if (ecu_data_try.first == true) {
                 ecu_data = ecu_data_try.second;
-                logger.warn("cam_id:{}",ecu_data.cam_id);
-                logger.warn("mode:{}",ecu_data.mode);            
             } else {
                 ecu_data.cam_id = 1;
-                ecu_data.mode = 1;
+                ecu_data.mode = 2;
                 // ecu_data.position_id = 0;
             }
         } catch (exception e) {
             logger.warn("ECU_DATA reiceve error!");
         }
 
-
-        logger.info("cam_id{}", ecu_data.cam_id);
-        ecu_data.cam_id %= 4;
-
-        operator_index = ecu_data.cam_id;
-
-        if (ecu_data.mode == 0) {
-            UVC uvc(cam_name[vision_index].c_str());
-            uvc.initUVC(200);
-            logger.info("Get Mine Mode");
-        } else if (ecu_data.mode == 1) {
-            UVC uvc(cam_name[vision_index].c_str());
-            uvc.initUVC(30);
-            logger.info("Exchange Mine Mode");
+        // Set operator camera index when ecu data changed
+        if(ecu_data.cam_id % 4 != param.operator_cam_index){
+            ecu_data.cam_id %= 4;
+            param.operator_cam_index = ecu_data.cam_id;
+            logger.warn("Operator camera index change to: {}", param.operator_cam_index);
         }
 
 
-        vision_cap = cap_set[vision_index];
-        operator_cap = cap_set[operator_index];
+        // Set mode when ecu data changed
+        if(param.get_run_mode() != ecu_data.mode){
+            // 0 for gold mine, 1 for silver mine, 2 for exchange site, 3 for halt
+            param.set_run_mode((MODE)ecu_data.mode);
+            logger.warn("Mode change to: {}", param.get_run_mode());
+            setCamera(ecu_data.mode);
+        }
+
+        // Set camera index
+        vision_cap = cap_set[param.operator_cam_index];
+        operator_cap = cap_set[param.operator_cam_index];
 
         if (!vision_cap.isOpened()) {
             logger.error("Vision Camera is not opened");
-            vision_img = Mat::zeros(480, 800, CV_8UC1);
+            vision_img = Mat::zeros(720, 1280, CV_8UC1);
             pub.push(vision_img.clone());
         } else {
             vision_cap >> vision_img;
@@ -115,7 +114,7 @@ void Sensor::imageRaw(int index, Mat& img){
     char timestamp[20];
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M-%S", std::localtime(&t_c));
     if(index % 10 == 0){
-        fs::path dirPath = "../raw/changesite";
+        fs::path dirPath = param.image_prefix;
         if (fs::exists(dirPath)) {
             logger.info("Path already exists.");
         } else {
@@ -125,7 +124,7 @@ void Sensor::imageRaw(int index, Mat& img){
                 logger.critical("Failed to create directory." );
             }
         }
-        imwrite("../raw/changesite/"+std::string(timestamp)+ to_string(index) + ".jpg",img);
+        imwrite( param.image_prefix + '/' + std::string(timestamp)+ to_string(index) + ".jpg",img);
     }
 }
 
@@ -137,7 +136,7 @@ void Sensor::initVideoRaw() {
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M-%S", std::localtime(&t_c));
 
     for(auto num:writer_num){
-        string path = videoPathPrefix + cam_name[num];
+        string path = param.sensor_prefix + cam_name_maps.at(num);
         fs::path dirPath = path;
         if (fs::exists(dirPath)) {
             logger.info("Path already exists.");
@@ -149,17 +148,16 @@ void Sensor::initVideoRaw() {
             }
         }
         VideoWriter videoWriter(path + '/' + std::string(timestamp) + ".mp4", codec, fps, frameSize);
-        writer_map.insert(pair<string,VideoWriter>(cam_name[num],videoWriter));
+        writer_map.insert(pair<int,VideoWriter>(num,videoWriter));
     }
 }
 
 void Sensor::videoRaw(cv::Mat &img) {
 
     if(writer_map.empty()){
-        logger.info("No need to log");
         return;
     }
-    VideoWriter videoWriter = writer_map.at(cam_name[writer_num[0]]);
+    VideoWriter videoWriter = writer_map.at(writer_num[0]);
     videoWriter.write(img);
     if (frame_index++ >= 1800) {
         frame_index = 0;
@@ -171,8 +169,8 @@ void Sensor::videoRaw(cv::Mat &img) {
 
         videoWriter.release();
 
-        string path = videoPathPrefix + cam_name[writer_num[0]];
-        writer_map.at(cam_name[writer_num[0]]) = VideoWriter(path + '/' + std::string(timestamp) + ".mp4", codec, fps, frameSize);
+        string path = param.sensor_prefix + cam_name_maps.at(writer_num[0]);
+        writer_map.at(writer_num[0]) = VideoWriter(path + '/' + std::string(timestamp) + ".mp4", codec, fps, frameSize);
     }
 
 }
@@ -185,7 +183,7 @@ void Sensor::videoRaw(vector<Mat> &img) {
     }
     for(int i = 0; i < writer_num.size(); i++)
     {
-        VideoWriter videoWriter = writer_map.at(cam_name[writer_num[i]]);
+        VideoWriter videoWriter = writer_map.at(writer_num[i]);
         videoWriter.write(img[i]);
         if (frame_index >= 1800) {
             frame_index = 0;
@@ -197,10 +195,22 @@ void Sensor::videoRaw(vector<Mat> &img) {
 
             videoWriter.release();
 
-            string path = videoPathPrefix + cam_name[i];
-            writer_map.at(cam_name[i]) = VideoWriter(path + '/' + std::string(timestamp) + ".mp4", codec, fps, frameSize);
+            string path = param.sensor_prefix + cam_name_maps.at(writer_num[0]);
+            writer_map.at(writer_num[i]) = VideoWriter(path + '/' + std::string(timestamp) + ".mp4", codec, fps, frameSize);
         }
     }
     frame_index++;
 
+}
+
+void Sensor::setCamera(int mode) {
+    if (mode == 0) {
+        UVC uvc(cam_name_maps[param.vision_cam_index].c_str());
+        uvc.initUVC(200);
+        logger.info("Change to get mine mode.");
+    } else if (mode == 2) {
+        UVC uvc(cam_name_maps[param.vision_cam_index].c_str());
+        uvc.initUVC(30);
+        logger.info("Change to exchange mine mode.");
+    }
 }

@@ -2,8 +2,8 @@
 // Created by future on 23-5-17.
 //
 
-#ifndef ENGINEER_CAMERAPARAM_H
-#define ENGINEER_CAMERAPARAM_H
+#ifndef ENGCV_2023_UVC_HPP_
+#define ENGCV_2023_UVC_HPP_ 
 
 #include <iostream>
 #include <unistd.h>
@@ -15,6 +15,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
+#include <log.hpp>
+
 using namespace std;
 using namespace cv;
 
@@ -23,6 +25,7 @@ class UVC{
     public:
         int fd;
         const char* camera_id;
+        Logger logger = Logger("UVC");
 
         UVC(const char* camera_id);
         ~UVC();
@@ -37,4 +40,4 @@ class UVC{
 };
 
 
-#endif //ENGINEER_CAMERAPARAM_H
+#endif //ENGCV_2023_UVC_HPP_

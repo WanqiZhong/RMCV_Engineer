@@ -72,7 +72,7 @@ void Detector::Detect_Run()
                 // mine_sub.push(MINE_POSITION_MSG(silver_mine_rect));
                 // logger.info("SilverMineDetect_Run");
             }
-            else if(mode==ChangeSiteMode)
+            else if(mode==ExchangeSiteMode)
             {
                 if(first_flag)
                 {

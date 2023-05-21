@@ -12,6 +12,8 @@ set(link Threads::Threads ${link})
 
 set(link data ${link})
 set(link args ${link})
+set(link utils ${link})
+
 
 add_library(calculate ${src})
 target_include_directories(calculate PUBLIC include)

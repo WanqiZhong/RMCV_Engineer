@@ -5,7 +5,7 @@ UVC::UVC(const char *camera_id) {
     this->camera_id = camera_id;
     fd = open(camera_id, O_RDWR);
     if (fd < 0) {
-        perror("open video failed");
+        logger.warn("Can't open UVC device.");
     }
 }
 
@@ -18,15 +18,18 @@ int UVC::setCamParam(struct v4l2_queryctrl *qctrl, int value) {
     ctrl.id = qctrl->id;
     ctrl.value = value;
 
+    if(fd < 0){
+//        logger.warn("Can't open UVC device.");
+        return -1;
+    }
+
     int ret = ioctl(fd, VIDIOC_S_CTRL, &ctrl);
 
     if (ret == 0) {
-        printf("Succeed ");
+        logger.info("Succeed to set {} = {}", qctrl->name, ctrl.value);
     } else {
-        printf("Failed ");
+        logger.warn("Failed to set {} = {}", qctrl->name, ctrl.value);
     }
-    printf("set %s = %d\n", qctrl->name, ctrl.value);
-
     return ret;
 }
 
@@ -40,14 +43,18 @@ int UVC::setCamParam(int id, int value) {
     ctrl.id = id;
     ctrl.value = value;
 
+    if(fd < 0){
+        logger.warn("Can't open UVC device.");
+        return -1;
+    }
+
     int ret = ioctl(fd, VIDIOC_S_CTRL, &ctrl);
 
     if (ret == 0) {
-        printf("Succeed ");
+        logger.info("Succeed to set {} = {}", qctrl.name, ctrl.value);
     } else {
-        printf("Failed ");
+        logger.warn("Failed to set {} = {}", qctrl.name, ctrl.value);
     }
-    printf("set %s = %d\n", qctrl.name, ctrl.value);
 
     return ret;
 }

@@ -17,15 +17,11 @@ using namespace cv;
 int main(int argc, char **argv)
 {
     Logger logger("main");
-    int mode = 2;
     if(argc>=2)
-        mode = atoi(argv[1]);
-    
-    cout<<mode<<endl;
-
+        param.set_run_mode((MODE)atoi(argv[1]));
     Sensor sensor;
     sensor.Run();
-    Detector detect(mode);
+    Detector detect(param.get_run_mode());
     detect.Run();
     Calculator calculate;
     calculate.Run();
@@ -37,7 +33,7 @@ int main(int argc, char **argv)
     calculate.Join();
     bridge.Join();
     
-    while(mode != HALT) {
+    while(param.get_run_mode() != HALT) {
         std::this_thread::sleep_for(3s);
     }
     cout<<"main end"<<endl;

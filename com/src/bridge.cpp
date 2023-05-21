@@ -2,15 +2,6 @@
 #include "thread_butcher.hpp"
 #include <log.hpp>
 
-// #pragma pack(1)
-// struct Data
-// {
-//     float x, y;
-//     float z;
-// };
-// #pragma pack()
-
-
 bool Bridge::Reset(){
     crh::kill_thread(send_thread, "Bridge.send_thread");
     crh::kill_thread(recv_thread, "Bridge.recv_thread");
