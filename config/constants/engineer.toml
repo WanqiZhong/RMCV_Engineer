@@ -25,6 +25,7 @@ vision_cam_index = 1
 [visual.camera]
 visual_status = 1
 view = 0
+camp = 1
 
 [visual.transform]
 tran_tvecx = 127.0

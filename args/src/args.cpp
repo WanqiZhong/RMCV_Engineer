@@ -70,10 +70,12 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     auto &visual_camera = visual.at("camera");
     visual_status = visual_camera.at("visual_status").as_integer();
     view = visual_camera.at("view").as_integer();
+    camp = visual_camera.at("camp").as_integer();
     auto &transform = visual.at("transform");
     tran_tvecx = transform.at("tran_tvecx").as_floating();
     tran_tvecy = transform.at("tran_tvecx").as_floating();
     tran_tvecz = transform.at("tran_tvecx").as_floating();
+
 
 
     // Sensor

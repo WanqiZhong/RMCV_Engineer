@@ -1238,8 +1238,10 @@ void Detector::find_site_corner(Mat &img)
 
     //图像预处理，得到角点
     cvtColor(img, output, COLOR_BGR2HSV);
-    inRange(output, Scalar(125, 0, 150), Scalar(180, 255, 255), output);//red
-    //inRange(output, Scalar(78, 72, 147), Scalar(122, 255, 255), output);//blue
+    if(param.camp == 0)
+        inRange(output, Scalar(125, 0, 150), Scalar(180, 255, 255), output); //red
+    else
+        inRange(output, Scalar(78, 72, 147), Scalar(122, 255, 255), output); //blue
 
     // Mat kernel_middle = getStructuringElement(MORPH_RECT, Size(5, 5));
     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));

@@ -34,7 +34,6 @@ void Sensor::Sensor_Run() {
         cap.set(CAP_PROP_FRAME_WIDTH, param.frame_width);
         cap.set(CAP_PROP_FRAME_HEIGHT, param.frame_height);
         cap_set.push_back(cap);
-
     }
 
     initVideoRaw();
@@ -56,6 +55,12 @@ void Sensor::Sensor_Run() {
                 ecu_data.view = 1;
                 ecu_data.mode = 2;
                 ecu_data.visual_flag = 1;
+                if(param.camp == -1){
+                    ecu_data.camp = 0;
+                }
+                else{
+                    ecu_data.camp = param.camp;
+                }
                 // ecu_data.position_id = 0;
             }
         } catch (exception e) {
@@ -63,6 +68,8 @@ void Sensor::Sensor_Run() {
         }
 
         param.operator_cam_index = ecu_data.view % 4;
+        param.camp = ecu_data.camp;
+
 
         // Set mode when ecu data changed
         if(param.get_run_mode() != ecu_data.mode){

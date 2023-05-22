@@ -44,6 +44,8 @@ namespace args
         // ============== Visual =====================
         int visual_status;
         int view;
+        int camp;
+
         float tran_tvecx;
         float tran_tvecy;
         float tran_tvecz;
