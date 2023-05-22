@@ -13,9 +13,11 @@ recv_id = 0x002
 [sensor]
 [sensor.camera]
 serial_number = ""
-exposure_time_mine = 250.0
-exposure_time_exchangesite = 50.0
+exposure_time_mine = 200.0
+exposure_time_exchangesite = 30.0
 frame_rate = 30
+frame_width = 1280
+frame_height = 720
 operator_cam_index = 1
 vision_cam_index = 1
 

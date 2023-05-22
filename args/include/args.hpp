@@ -59,6 +59,8 @@ namespace args
 
         float exposure_time_exchangesite;    // microsecond(μs)
         float exposure_time_mine;    // microsecond(μs)
+        int frame_width;
+        int frame_height;
 
         // ============== Sensor ====================
         bool image_read;  // true - image / false - video

@@ -81,6 +81,8 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     toml::value &camera = local_sensor.at("camera");
     serial_number = camera.at("serial_number").as_string();
     frame_rate = camera.at("frame_rate").as_integer();
+    frame_height = camera.at("frame_height").as_integer();
+    frame_width = camera.at("frame_width").as_integer();
 
     exposure_time_mine = camera.at("exposure_time_mine").as_floating();
     exposure_time_exchangesite = camera.at("exposure_time_exchangesite").as_floating();

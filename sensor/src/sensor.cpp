@@ -24,15 +24,15 @@ void Sensor::Sensor_Run() {
 
     for(int i=0; i < cam_name_maps.size(); i++){
         UVC uvc(cam_name_maps.at(i).c_str());
-        uvc.initUVC(200);
+        uvc.initUVC(param.exposure_time_mine);
     }
 
     for(int i= 0; i < cam_name_maps.size(); i++){
         VideoCapture cap(cam_name_maps[i], CAP_V4L);
         cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
-        cap.set(CAP_PROP_FPS, 30);
-        cap.set(CAP_PROP_FRAME_WIDTH, 1280);
-        cap.set(CAP_PROP_FRAME_HEIGHT, 720);
+        cap.set(CAP_PROP_FPS, param.frame_rate);
+        cap.set(CAP_PROP_FRAME_WIDTH, param.frame_width);
+        cap.set(CAP_PROP_FRAME_HEIGHT, param.frame_height);
         cap_set.push_back(cap);
 
     }
@@ -81,7 +81,7 @@ void Sensor::Sensor_Run() {
 
         if (!vision_cap.isOpened()) {
             logger.error("Vision Camera is not opened");
-            vision_img = Mat::zeros(720, 1280, CV_8UC1);
+            vision_img = Mat::zeros(param.frame_height, param.frame_width, CV_8UC1);
             pub.push(vision_img.clone());
         } else {
             vision_cap >> vision_img;
@@ -204,13 +204,13 @@ void Sensor::videoRaw(vector<Mat> &img) {
 }
 
 void Sensor::setCamera(int mode) {
-    if (mode == 0) {
+    if (mode == 2) {
         UVC uvc(cam_name_maps[param.vision_cam_index].c_str());
-        uvc.initUVC(200);
-        logger.info("Change to get mine mode.");
-    } else if (mode == 2) {
-        UVC uvc(cam_name_maps[param.vision_cam_index].c_str());
-        uvc.initUVC(30);
+        uvc.initUVC(param.exposure_time_exchangesite);
         logger.info("Change to exchange mine mode.");
+    } else{
+        UVC uvc(cam_name_maps[param.vision_cam_index].c_str());
+        uvc.initUVC(param.exposure_time_mine);
+        logger.info("Change to get mine mode.");
     }
 }
