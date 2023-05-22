@@ -32,10 +32,11 @@ namespace ml // machine learning
 
 enum MODE // 运行模式
 {
-    GoldMode,
-    SilverMode,
-    ExchangeSiteMode,
-    HALT,     // 停机
+    GoldMode, // 0
+    SilverMode, // 1
+    ExchangeSiteMode, // 2
+    WaitMode, // 3 NoVision
+    HALT,     // 4 停机
     Unknown,  // 未知
 };
 
@@ -67,9 +68,11 @@ struct pure_IMU{
 };
 
 struct IMU_DATA_MSG{
-    uint8_t cam_id;
-//    uint8_t position_id;
-    uint8_t mode;
+    uint8_t view; // Operator view
+    uint8_t visual_flag; // 0 for no vision, 1 for vision real time, 2 for vision last valid data
+    uint8_t mode; // 0 for gold, 1 for silver, 2 for exchange site, 3 for halt
+    uint8_t position_id; // 1 for left, 2 for center, 3 for right
+    uint8_t camp; // 0 for red, 1 for blue
     double time_stamp;
 };
 #pragma pack()

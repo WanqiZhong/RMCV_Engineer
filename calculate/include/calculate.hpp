@@ -36,21 +36,18 @@ class Calculator
 {
     private:
         Logger logger = Logger("Calculator");
-        uint8_t mode = 2;
         vector<vector<Point>> anchor_point;
         Mat CameraMatrix;
         Mat DistCoeffs;
         vector<Mat> final_R; // 固定视角
         vector<Mat> final_T; // 固定视角
-        double L = 0;
-        double H = 0;
-        Mat final_Rvec = (Mat_<double>(3,3) <<  0, 0, 1,
-                                              -1, 0, 0,
-                                               0,-1, 0);
-        Mat final_Tvec = (Mat_<double>(3,1) << -L, 0, H); // 相机与吸盘转换矩阵
+        Mat final_Rvec = (Mat_<double>(3,3) <<  1, 0, 0,
+                                                0, 0, 1,
+                                                0,-1, 0);
+        Mat final_Tvec = (Mat_<double>(3,1) << param.tran_tvecx, param.tran_tvecy, param.tran_tvecz); // 相机与吸盘转换矩阵
         Eigen::Vector3d ypr = Eigen::Vector3d(0,0,0);
         Eigen::Vector3d position = Eigen::Vector3d(0,0,0);
-        int view_type = 0;
+        ANGLE_DATA_MSG last_angle_data_msg;
         thread Calculator_thread;
 
     public:

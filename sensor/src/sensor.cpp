@@ -24,17 +24,16 @@ void Sensor::Sensor_Run() {
 
     for(int i=0; i < cam_name_maps.size(); i++){
         UVC uvc(cam_name_maps.at(i).c_str());
-        uvc.initUVC(200);
+        uvc.initUVC(param.exposure_time_mine);
     }
 
     for(int i= 0; i < cam_name_maps.size(); i++){
         VideoCapture cap(cam_name_maps[i], CAP_V4L);
         cap.set(CAP_PROP_FOURCC, VideoWriter::fourcc('M', 'J', 'P', 'G'));
-        cap.set(CAP_PROP_FPS, 30);
-        cap.set(CAP_PROP_FRAME_WIDTH, 1280);
-        cap.set(CAP_PROP_FRAME_HEIGHT, 720);
+        cap.set(CAP_PROP_FPS, param.frame_rate);
+        cap.set(CAP_PROP_FRAME_WIDTH, param.frame_width);
+        cap.set(CAP_PROP_FRAME_HEIGHT, param.frame_height);
         cap_set.push_back(cap);
-
     }
 
     initVideoRaw();
@@ -53,8 +52,15 @@ void Sensor::Sensor_Run() {
             if (ecu_data_try.first == true) {
                 ecu_data = ecu_data_try.second;
             } else {
-                ecu_data.cam_id = 1;
+                ecu_data.view = 1;
                 ecu_data.mode = 2;
+                ecu_data.visual_flag = 1;
+                if(param.camp == -1){
+                    ecu_data.camp = 0;
+                }
+                else{
+                    ecu_data.camp = param.camp;
+                }
                 // ecu_data.position_id = 0;
             }
         } catch (exception e) {
@@ -63,12 +69,8 @@ void Sensor::Sensor_Run() {
         ecu_data.cam_id = 1;
         ecu_data.mode = 2;
 
-        // Set operator camera index when ecu data changed
-        if(ecu_data.cam_id % 4 != param.operator_cam_index){
-            ecu_data.cam_id %= 4;
-            param.operator_cam_index = ecu_data.cam_id;
-            logger.warn("Operator camera index change to: {}", param.operator_cam_index);
-        }
+        param.operator_cam_index = ecu_data.view % 4;
+        param.camp = ecu_data.camp;
 
 
         // Set mode when ecu data changed
@@ -79,15 +81,16 @@ void Sensor::Sensor_Run() {
             setCamera(ecu_data.mode);
         }
 
-        setCamera(2);
+        param.visual_status = ecu_data.visual_flag;
+        param.view = ecu_data.view;
 
         // Set camera index
-        vision_cap = cap_set[param.operator_cam_index];
+        vision_cap = cap_set[param.vision_cam_index];
         operator_cap = cap_set[param.operator_cam_index];
 
         if (!vision_cap.isOpened()) {
             logger.error("Vision Camera is not opened");
-            vision_img = Mat::zeros(720, 1280, CV_8UC1);
+            vision_img = Mat::zeros(param.frame_height, param.frame_width, CV_8UC1);
             pub.push(vision_img.clone());
         } else {
             vision_cap >> vision_img;
@@ -97,7 +100,9 @@ void Sensor::Sensor_Run() {
                 imshow("vision_img", vision_img);
                 waitKey(1);
             }
-            pub.push(vision_img.clone());
+            if(param.visual_status!=0){
+                pub.push(vision_img.clone());
+            }
         }
 
         if (!operator_cap.isOpened()) {
@@ -208,13 +213,13 @@ void Sensor::videoRaw(vector<Mat> &img) {
 }
 
 void Sensor::setCamera(int mode) {
-    if (mode == 0) {
+    if (mode == 2) {
         UVC uvc(cam_name_maps[param.vision_cam_index].c_str());
-        uvc.initUVC(200);
-        logger.info("Change to get mine mode.");
-    } else if (mode == 2) {
-        UVC uvc(cam_name_maps[param.vision_cam_index].c_str());
-        uvc.initUVC(20);
+        uvc.initUVC(param.exposure_time_exchangesite);
         logger.info("Change to exchange mine mode.");
+    } else{
+        UVC uvc(cam_name_maps[param.vision_cam_index].c_str());
+        uvc.initUVC(param.exposure_time_mine);
+        logger.info("Change to get mine mode.");
     }
 }

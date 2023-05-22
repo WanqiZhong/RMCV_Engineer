@@ -35,7 +35,6 @@ void Detector::Detect_Run()
                 logger.warn("Sub pop empty img");
                 receive_flag = 0;
             }
-            logger.info("Receive img");
             std::this_thread::sleep_for(std::chrono::milliseconds(int(1000. /30)));
         }
         catch(const HaltEvent&){
@@ -81,16 +80,9 @@ void Detector::Detect_Run()
                     logger.debug("Detect run in ChangeSite");
                 }
                 ExchangeSite_Run(img);
-                if(anchor_point.empty())
-                {
-                    logger.info("No anchor point");
-                }
-                else
-                {
-                    std::reverse(anchor_point.begin(), anchor_point.end());
-                    mine_sub.push(MINE_POSITION_MSG{.goal=anchor_point});
-                    logger.info("GoldMineDetect_Run --> Control");
-                }
+                if(!anchor_point.empty())
+                    std::reverse(anchor_point[0].begin(), anchor_point[0].end());
+                mine_sub.push(MINE_POSITION_MSG{.goal=anchor_point});
             }
             else
             {
@@ -1247,12 +1239,14 @@ void Detector::find_site_corner(Mat &img)
 
     //图像预处理，得到角点
     cvtColor(img, output, COLOR_BGR2HSV);
-    inRange(output, Scalar(130, 0, 170), Scalar(180, 255, 255), output);//red
-    //inRange(output, Scalar(78, 72, 147), Scalar(122, 255, 255), output);//blue
+    if(param.camp == 0)
+        inRange(output, Scalar(125, 0, 150), Scalar(180, 255, 255), output); //red
+    else
+        inRange(output, Scalar(78, 72, 147), Scalar(122, 255, 255), output); //blue
 
     // Mat kernel_middle = getStructuringElement(MORPH_RECT, Size(5, 5));
     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-    morphologyEx(output, output, MORPH_CLOSE, kernel, Point(-1, -1), 2);
+    morphologyEx(output, output, MORPH_CLOSE, kernel, Point(-1, -1), 3);
     //  dilate(output, output, kernel, Point(-1, -1), 3);
     //  erode(output, output, kernel, Point(-1, -1), 3);
     morphologyEx(output, output, MORPH_OPEN, kernel, Point(-1, -1), 2);
@@ -1298,9 +1292,10 @@ void Detector::find_site_corner(Mat &img)
             //     line(img, p[i], p[(i + 1) % 4], Scalar(255, 0, 0));
             // }
         }
-        //提取右上角角点的一个点单独储存，用于后续按顺序输出角点座标
-        square_contour.push_back(contours[i][0]);
     }
+    //提取右上角角点的一个点单独储存，用于后续按顺序输出角点座标
+    square_contour.push_back(contours[min_corner_index][0]);
+
 }
 
 

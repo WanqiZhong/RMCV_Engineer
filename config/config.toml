@@ -37,5 +37,10 @@ detector_fps = 30
 image_prefix = "logs/image/"
 image_stride = 10
 
+# Video
+[video]
+image_read = true
+image_path = "benchmark/R2.jpg"
+
 
 

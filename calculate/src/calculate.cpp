@@ -18,31 +18,49 @@ void Calculator::Calculate_Run()
     CalculateInit();
     umt::Subscriber<MINE_POSITION_MSG> mine_sub("anchor_point_data");
     umt::Publisher<ANGLE_DATA_MSG> angle_pub("robot_data");
-    while(mode!=HALT)
+    while(param.get_run_mode()!=HALT)
     {
+        anchor_point.clear();
         try{
             MINE_POSITION_MSG msg = mine_sub.pop();
+            if(msg.goal.empty()){
+                logger.warn("No anchor_point, can't solve pnp.");
+                continue;
+            }
             anchor_point = msg.goal;
-            cout<<"Reiceve anchor_point:"<<endl;
-            cout<<anchor_point[0]<<endl;
+            logger.info("Reiceve anchor_point:[{},{}],[{},{}],[{},{}],[{},{}]",anchor_point[0][0].x, \
+            anchor_point[0][0].y,anchor_point[0][1].x,anchor_point[0][1].y,anchor_point[0][2].x,anchor_point[0][2].y, \
+            anchor_point[0][3].x,anchor_point[0][3].y);
         }
         catch(const HaltEvent&){
             cout<<"Catch HaltEvent"<<endl;
             break;
         }
         CalculatePnp();
-        ANGLE_DATA_MSG angle_msg;
-        angle_msg.is_valid = true;
-        angle_msg.ratation_right = true;
-        // change to float
-        angle_msg.roll = float(ypr[2]);
-        angle_msg.pitch = float(ypr[1]);
-        angle_msg.yaw = float(ypr[0]);
-        angle_msg.x = float(position[0]);
-        angle_msg.y = float(position[1]);
-        angle_msg.z = float(position[2]);
-        logger.critical("angle_msg: x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",angle_msg.x,angle_msg.y,angle_msg.z,angle_msg.roll,angle_msg.pitch,angle_msg.yaw);
-        angle_pub.push(angle_msg);
+        if(param.visual_status == 1){
+            ANGLE_DATA_MSG angle_msg;
+            angle_msg.is_valid = true;
+            angle_msg.ratation_right = true;
+            // change to float
+            angle_msg.roll = float(ypr[2]);
+            angle_msg.pitch = float(ypr[1]);
+            angle_msg.yaw = float(ypr[0]);
+            angle_msg.x = float(position[0]);
+            angle_msg.y = float(position[1]);
+            angle_msg.z = float(position[2]);
+            last_angle_data_msg = angle_msg;
+            logger.warn("angle_msg: x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",angle_msg.x,angle_msg.y,angle_msg.z,\
+            angle_msg.roll,angle_msg.pitch,angle_msg.yaw);
+            last_angle_data_msg = angle_msg;
+            angle_pub.push(angle_msg);
+        }
+        else if(param.visual_status == 2){
+            last_angle_data_msg.ratation_right = false;
+            logger.critical("Last one angle_msg: x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",last_angle_data_msg.x,last_angle_data_msg.y,last_angle_data_msg.z,\
+            last_angle_data_msg.roll,last_angle_data_msg.pitch,last_angle_data_msg.yaw);
+            angle_pub.push(last_angle_data_msg);
+        }
+
     }
 }
 
@@ -67,16 +85,15 @@ void Calculator::CalculateInit()
 
 void Calculator::CalculatePnp()
 {
-    cout<<"Start to calculate pnp"<<endl;
     vector<Point3f> Mine3D;
     vector<Point2f> Mine2D;
-    if(mode == GoldMode){
+    if(param.get_run_mode() == GoldMode){
         Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,0));
         Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,0));
         Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,0));
         Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
     }
-    else if(mode == ExchangeSiteMode){
+    else if(param.get_run_mode() == ExchangeSiteMode){
         Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,50));
         Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,50));
         Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,50));
@@ -88,20 +105,16 @@ void Calculator::CalculatePnp()
     Mat cvPosition = Mat::zeros(3,1,CV_64FC1);
     Eigen::Matrix<double, 3, 3> R;
     Eigen::Matrix<double, 3, 1> T;
-    logger.info("anchor_point:set_dim0:{},set_dim1:{}", anchor_point.size(), anchor_point[0].size());
     for(int i = 0; i < 1; ++i){
         for(int j = 0; j < anchor_point[i].size(); ++j){
             Mine2D.push_back(anchor_point[i][j]);
-            cout<<Mine2D[j]<<endl;
         }
         solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec);
-        cout<<"revc"<<rvec<<endl;
-        Rodrigues(rvec, rotMat);    
-        cout<<"rotMat"<<rotMat<<endl;
+        Rodrigues(rvec, rotMat);
         //由于solvePnP返回的是旋转向量，故用罗德里格斯变换变成旋转矩阵
         cv::cv2eigen(rotMat, R);
         cv::cv2eigen(tvec, T);
-        cout<< "tvec" << tvec <<endl;
+        logger.info("revc x:{}, y:{}, z:{}",T(0),T(1),T(2));
         // Eigen::Vector3d eulerAngle = R.eulerAngles(2, 1, 0);
         Eigen::Vector3d n = R.col(0);
         Eigen::Vector3d o = R.col(1);
@@ -116,26 +129,12 @@ void Calculator::CalculatePnp()
         ypr(2) = r;
 
         ypr = ypr / M_PI * 180.0;
-        cout<< ypr <<endl;
-
-
-        // for(int i = 0; i < rvec.size[0]; i ++){
-        //     logger.critical("rvec: ", rvec.at<double>(i, 0));
-        // }
-        // for(int i = 0; i < tvec.size[0]; i ++){
-        //     logger.critical("tvec: ", tvec.at<double>(i, 0));
-        // }
-        // for(int i = 0; i < 3; i ++){
-        //     logger.critical("ypr: ", ypr(i));
-        // }
-
-        // std::reverse(tvec.begin(), tvec.end());
+        logger.info("roll:{}, pitch:{}, yaw:{}",ypr(0),ypr(1),ypr(2));
 
         // position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
         cvPosition = final_Rvec * tvec + final_Tvec;
-        cout<<"cvPosition: "<<cvPosition<<endl;
         cv::cv2eigen(cvPosition, position);
-        cout<<"Position: "<<position<<endl;
+        logger.info("position x:{}, y:{}, z:{}",position(0),position(1),position(2));
 
     }
         // for(int i=0;i<5;i++)
