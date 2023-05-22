@@ -40,6 +40,15 @@ namespace args
         toml::value config;
         toml::value local_config;
 
+
+        // ============== Visual =====================
+        int visual_status;
+        int view;
+        float tran_tvecx;
+        float tran_tvecy;
+        float tran_tvecz;
+
+
         // ============== Camera =====================
         std::string serial_number;
         std::string camera_fov;
@@ -50,6 +59,11 @@ namespace args
 
         float exposure_time_exchangesite;    // microsecond(μs)
         float exposure_time_mine;    // microsecond(μs)
+
+        // ============== Sensor ====================
+        bool image_read;  // true - image / false - video
+        std::string image_path;
+
 
         // ============== Detector ====================
         DetectorArgs detector_args;

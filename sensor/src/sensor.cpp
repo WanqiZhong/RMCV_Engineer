@@ -53,21 +53,16 @@ void Sensor::Sensor_Run() {
             if (ecu_data_try.first == true) {
                 ecu_data = ecu_data_try.second;
             } else {
-                ecu_data.cam_id = 1;
+                ecu_data.view = 1;
                 ecu_data.mode = 2;
+                ecu_data.visual_flag = 1;
                 // ecu_data.position_id = 0;
             }
         } catch (exception e) {
             logger.warn("ECU_DATA reiceve error!");
         }
 
-        // Set operator camera index when ecu data changed
-        if(ecu_data.cam_id % 4 != param.operator_cam_index){
-            ecu_data.cam_id %= 4;
-            param.operator_cam_index = ecu_data.cam_id;
-            logger.warn("Operator camera index change to: {}", param.operator_cam_index);
-        }
-
+        param.operator_cam_index = ecu_data.view % 4;
 
         // Set mode when ecu data changed
         if(param.get_run_mode() != ecu_data.mode){
@@ -77,8 +72,11 @@ void Sensor::Sensor_Run() {
             setCamera(ecu_data.mode);
         }
 
+        param.visual_status = ecu_data.visual_flag;
+        param.view = ecu_data.view;
+
         // Set camera index
-        vision_cap = cap_set[param.operator_cam_index];
+        vision_cap = cap_set[param.vision_cam_index];
         operator_cap = cap_set[param.operator_cam_index];
 
         if (!vision_cap.isOpened()) {
@@ -93,7 +91,9 @@ void Sensor::Sensor_Run() {
                 imshow("vision_img", vision_img);
                 waitKey(1);
             }
-            pub.push(vision_img.clone());
+            if(param.visual_status!=0){
+                pub.push(vision_img.clone());
+            }
         }
 
         if (!operator_cap.isOpened()) {

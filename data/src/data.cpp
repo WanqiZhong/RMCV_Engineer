@@ -12,6 +12,8 @@ MODE cast_run_mode(uint8_t mode)
 	case 2:
 		return ExchangeSiteMode;
 	case 3:
+		return WaitMode;
+	case 4:
 		return HALT;
 	default:
 		return Unknown;

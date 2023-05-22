@@ -52,6 +52,7 @@ raw/
 out/
 raw/
 logs/
+benchmark/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/

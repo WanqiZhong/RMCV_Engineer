@@ -19,4 +19,12 @@ frame_rate = 30
 operator_cam_index = 1
 vision_cam_index = 1
 
-[etc]
+[visual]
+[visual.camera]
+visual_status = 1
+view = 0
+
+[visual.transform]
+tran_tvecx = 127.0
+tran_tvecy = -13.0
+tran_tvecz = 57.5

@@ -65,6 +65,17 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
 
     auto robot_constants = toml::parse(constants_path);
 
+    // Visual
+    auto &visual = robot_constants.at("visual");
+    auto &visual_camera = visual.at("camera");
+    visual_status = visual_camera.at("visual_status").as_integer();
+    view = visual_camera.at("view").as_integer();
+    auto &transform = visual.at("transform");
+    tran_tvecx = transform.at("tran_tvecx").as_floating();
+    tran_tvecy = transform.at("tran_tvecx").as_floating();
+    tran_tvecz = transform.at("tran_tvecx").as_floating();
+
+
     // Sensor
     auto &local_sensor = robot_constants.at("sensor");
     toml::value &camera = local_sensor.at("camera");
@@ -83,6 +94,11 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     serial_name = local_bridge.at("serial_name").as_string();
     serial_rate = local_bridge.at("serial_rate").as_integer();
     use_can = local_bridge.at("use_can").as_boolean();
+
+    // Video
+    auto &video = config.at("video");
+    image_read = video.at("image_read").as_boolean();
+    image_path = std::string(ROOT) + std::string(video.at("image_path").as_string());
 
     // Log
     auto &log = config.at("log");

@@ -13,6 +13,7 @@
 #include "data.hpp"
 #include "UVC.hpp"
 #include "args.hpp"
+#include "BaseCap.hpp"
 #include <thread>
 #include <chrono>
 #include <array>
@@ -37,12 +38,7 @@ using namespace std;
 using namespace cv;
 
 const vector<int> writer_num = {1};
-
-const int codec = VideoWriter::fourcc('M', 'J', 'P', 'G');
-const double fps = 30.0;
-const Size frameSize = Size(1280, 720);
-
-class Sensor
+class Sensor : public BaseCap
 {
     private:
         Logger logger =  Logger("Sensor");
@@ -60,9 +56,7 @@ class Sensor
         int frame_index = 0;
 
     public:
-        Sensor(){
-        
-        };
+        Sensor(){};
         ~Sensor(){};
 
         /* 主进程 */
