@@ -83,6 +83,9 @@ fabric.properties
 !.vscode/launch.json
 !.vscode/extensions.json
 
+
+*.mp4
+*.jpg
 # C++ ================================
  Prerequisites
 *.d
