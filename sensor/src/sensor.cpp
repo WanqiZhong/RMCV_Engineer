@@ -66,7 +66,7 @@ void Sensor::Sensor_Run() {
         } catch (exception e) {
             logger.warn("ECU_DATA reiceve error!");
         }
-        ecu_data.cam_id = 1;
+        ecu_data.view = 1;
         ecu_data.mode = 2;
 
         param.operator_cam_index = ecu_data.view % 4;
