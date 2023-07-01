@@ -10,7 +10,7 @@
 #include "video.hpp"
 #include "calculate.hpp"
 #include "bridge.h"
-#include "BaseCap.hpp"
+#include "basecap.hpp"
 #include <opencv4/opencv2/opencv.hpp>
 #include <cstring>
 using namespace cv;
@@ -23,7 +23,7 @@ int main(int argc, char **argv)
         param.set_run_mode((MODE)atoi(argv[1]));
 
     BaseCap *baseCap;
-    if(param.image_read){
+    if(param.image_log){
         logger.critical("image read mode");
         baseCap = new Video();
     }

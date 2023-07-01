@@ -1,4 +1,4 @@
-#include "UVC.hpp"
+#include "uvc.hpp"
 
 UVC::UVC(const char *camera_id) {
 

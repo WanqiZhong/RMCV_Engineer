@@ -60,15 +60,18 @@ class Detector
         int min_corner_index;
         vector<Point> station_contours;
         vector<Point> square_contour;
+        double min_corner_rec;//最小面积的角点的外接矩形面积
+        int corner_cnt = 0;
+        Mat thresh;
+        
         
         
     public:
+        int frame_index = 0;
+        int shot_index = 0;
         thread Detector_thread;
+        map<int, VideoWriter> detector_writer_map;
   
-
-        int gold_thresh = 70;
-        int gold_maxval = 255;
-
         /* 图像增强参数 */
         int contrast = 37;
         int bright = 18;
@@ -86,7 +89,6 @@ class Detector
         void GoldMineDetect_Run2(Mat &img);
         void SilverMineDetect_Run(Mat &img);
         void ExchangeSite_Run(Mat &img);
-
 
         void Detect_Run();
         Mat ImgUpdate();
@@ -120,6 +122,11 @@ class Detector
         /* ExchangeSite  */
         void find_site_corner(Mat &img);
         void get_station_side(Mat &img);
+
+
+        void initVideoRaw();
+        void writeVideoRaw(cv::Mat &img);
+        void writeImageRaw(int index, Mat& img);
 
 };
 

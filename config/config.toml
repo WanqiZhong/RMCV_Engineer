@@ -30,17 +30,19 @@ info_prefix = "logs/Info_"
 error_prefix = "logs/Error_"
 
 [log.record]
-sensor_prefix = "logs/raw/"
+sensor_prefix = "logs/raw"
 sensor_fps = 30 # -1 for use sensor config
-detector_prefix = "logs/records/"
-detector_fps = 30
-image_prefix = "logs/image/"
-image_stride = 10
+detector_prefix = "logs/records"
+detector_fps = 15
+image_prefix = "logs/image"
+image_stride = 5
+shot_prefix = "logs/screenshot"
 
 # Video
 [video]
-image_read = true
-image_path = "benchmark/R2.jpg"
+image_read = false
+image_log = true
+image_path = "benchmark/B1.mp4"
 
 
 

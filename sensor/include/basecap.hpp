@@ -11,7 +11,7 @@
 #include <algorithm>
 #include "umt.hpp"
 #include "data.hpp"
-#include "UVC.hpp"
+#include "uvc.hpp"
 #include "args.hpp"
 #include <thread>
 #include <chrono>
@@ -40,9 +40,6 @@ class BaseCap
     public:
         virtual void Run() = 0;
         virtual void Join() = 0;
-        const int codec = VideoWriter::fourcc('M', 'J', 'P', 'G');
-        const double fps = 30.0;
-        const Size frameSize = Size(1280, 720);
 };
 
 

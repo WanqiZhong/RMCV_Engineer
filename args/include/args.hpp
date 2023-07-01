@@ -7,6 +7,15 @@
 #include "spdlog/spdlog.h"
 #include <string>
 #include <filesystem>
+#include <map>
+#include <vector>
+#include <set>
+#include <filesystem>
+#include <opencv2/opencv.hpp>
+
+
+namespace fs = std::filesystem;
+using namespace std;
 
 namespace args
 {
@@ -22,7 +31,7 @@ namespace args
             friend class Args;
     };
 
-      class DetectorArgs
+    class DetectorArgs
     {
         void init(const toml::value&);
     public:
@@ -50,6 +59,13 @@ namespace args
         float tran_tvecy;
         float tran_tvecz;
 
+        float cali_x;
+        float cali_y;
+        float cali_z;
+        float cali_roll;
+        float cali_yaw;
+        float cali_pitch;
+
 
         // ============== Camera =====================
         std::string serial_number;
@@ -63,10 +79,13 @@ namespace args
         float exposure_time_mine;    // microsecond(μs)
         int frame_width;
         int frame_height;
+        int codec;
 
         // ============== Sensor ====================
         bool image_read;  // true - image / false - video
+        bool image_log;   // true - read image or video log / false - read from camera
         std::string image_path;
+
 
 
         // ============== Detector ====================
@@ -100,6 +119,7 @@ namespace args
         std::string sensor_prefix;
         std::string detector_prefix;
         std::string image_prefix;
+        std::string shot_prefix;
 
         int sensor_fps;
         int detector_fps;
@@ -108,6 +128,11 @@ namespace args
         // log files
         std::string info_prefix;
         std::string error_prefix;
+        map<int, string> cam_map;
+        vector<int> cap_set;
+        vector<int> writer_set;
+        vector<int> detector_writer_set;
+        string get_log_path(int num, string prefix, int index = 0);
 
         DebugArgs debug;
 

@@ -11,9 +11,9 @@
 #include <algorithm>
 #include "umt.hpp"
 #include "data.hpp"
-#include "UVC.hpp"
+#include "uvc.hpp"
 #include "args.hpp"
-#include "BaseCap.hpp"
+#include "basecap.hpp"
 #include <thread>
 #include <chrono>
 #include <array>
@@ -37,7 +37,6 @@ namespace fs = std::filesystem;
 using namespace std;
 using namespace cv;
 
-const vector<int> writer_num = {1};
 class Sensor : public BaseCap
 {
     private:
@@ -47,11 +46,8 @@ class Sensor : public BaseCap
         Mat vision_img;
         std::mutex img_mtx;
 
-        vector<VideoCapture> cap_set; // In the front of the engineer, default 2
         VideoCapture vision_cap; // In the front of the engineer, default 2
         VideoCapture operator_cap; // For operator to use , default 2
-        map<int, string> cam_name_maps = {{0,"/dev/cam1"},{1,"/dev/video0"},{2,"/dev/cam2"},{3,"/dev/cam3"}};
-        map<int, VideoWriter> writer_map;
 
         int frame_index = 0;
 
@@ -66,12 +62,14 @@ class Sensor : public BaseCap
         void Sensor_Run();
 
         void setCamera(int mode);
-        void imageRaw(int index, Mat& img);
+        void writeImageRaw(int index, Mat& img);
         void initVideoRaw();
-        void videoRaw(Mat& img);
-        void videoRaw(vector<Mat>& img);
+        void writeVideoRaw(Mat& img);
 
         thread Sensor_thread;
+        map<int, VideoWriter> writer_map;
+        map<int, VideoCapture> cap_map; // In the front of the engineer, default 2
+
 };
 
 

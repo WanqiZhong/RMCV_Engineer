@@ -11,9 +11,9 @@
 #include <algorithm>
 #include "umt.hpp"
 #include "data.hpp"
-#include "UVC.hpp"
+#include "uvc.hpp"
 #include "args.hpp"
-#include "BaseCap.hpp"
+#include "basecap.hpp"
 #include <thread>
 #include <chrono>
 #include <array>

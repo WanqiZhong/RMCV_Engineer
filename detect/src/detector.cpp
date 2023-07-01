@@ -4,6 +4,7 @@
 void Detector::Run()
 {
     logger.info("Detector Run");
+    initVideoRaw();
     Detector_thread = thread(&Detector::Detect_Run,this);
 }
 
@@ -16,77 +17,73 @@ void Detector::Join() {
 void Detector::Detect_Run()
 {
     cv::Mat img;
-    bool receive_flag = 0;
-    int first_flag = 1;
     umt::Subscriber<cv::Mat> sub("channel0");
     umt::Publisher<MINE_POSITION_MSG> mine_sub("anchor_point_data");
     while(param.get_run_mode()!=HALT)
     {
         try{
             img = sub.pop();
-            if(!img.empty())
-            {
-                imshow("pop_img",img);
-                waitKey(1);
-                receive_flag = 1;
+            if(!img.empty()){
+                // imshow("pop_img",img);
+                // waitKey(1);
             }
-            else
-            {
+            else{
                 logger.warn("Sub pop empty img");
-                receive_flag = 0;
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(int(1000. /30)));
         }
         catch(const HaltEvent&){
             break;
         }
-        if(receive_flag && !img.empty())
+        if(!img.empty())
         {
-            if(param.get_run_mode()==GoldMode)
-            {
-                if(first_flag)
-                {
-                    first_flag = 0;
-                    logger.debug("Detect run in Goldmine");
-                }
+            if(param.get_run_mode()==GoldMode){
                 GoldMineDetect_Run2(img);
-                if(anchor_point.empty())
-                {
+                if(anchor_point.empty()){
                      logger.info("No anchor point");
                 }
-                else
-                {
+                else{
                     mine_sub.push(MINE_POSITION_MSG{.goal=anchor_point});
                     logger.info("GoldMineDetect_Run --> Control");
                 }
             }
-            else if(param.get_run_mode()==SilverMode)
-            {
-                if(first_flag)
-                {
-                    first_flag = 0;
-                    logger.debug("Detect run in Silvermine");
-                }
+            else if(param.get_run_mode()==SilverMode){
                 SilverMineDetect_Run(img);
                 // mine_sub.push(MINE_POSITION_MSG(silver_mine_rect));
                 // logger.info("SilverMineDetect_Run");
             }
-            else if(param.get_run_mode()==ExchangeSiteMode)
-            {
-                logger.warn("Test");
-                if(first_flag)
-                {
-                    first_flag = 0;
-                    logger.debug("Detect run in ChangeSite");
-                }
+            else if(param.get_run_mode()==ExchangeSiteMode){
                 ExchangeSite_Run(img);
-                if(!anchor_point.empty())
+                if(!anchor_point.empty()){
                     std::reverse(anchor_point[0].begin(), anchor_point[0].end());
+                }
                 mine_sub.push(MINE_POSITION_MSG{.goal=anchor_point});
+                // umt::Publisher<ANGLE_DATA_MSG> angle_pub("robot_data");
+                //             ANGLE_DATA_MSG angle_msg;
+                // angle_msg.is_valid = true;
+                // angle_msg.ratation_right = true;
+                // // change to float
+                // angle_msg.roll = param.cali_roll;
+                // angle_msg.pitch = param.cali_pitch;
+                // angle_msg.yaw = param.cali_yaw;
+                // angle_msg.x = param.cali_x;
+                // angle_msg.y = param.cali_y;
+                // angle_msg.z = param.cali_z;
+                // logger.warn("angle_msg: x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",angle_msg.x,angle_msg.y,angle_msg.z,\
+                // angle_msg.roll,angle_msg.pitch,angle_msg.yaw);
+                // angle_pub.push(angle_msg);
             }
-            else
-            {
+            else{
                  logger.critical("Detector mode error");
+            }
+            if(param.detector_need){
+                writeVideoRaw(img);
+                imshow("res_pic", img);
+                // waitKey(1);
+                if (waitKey(1) == 's'){
+                    writeImageRaw(shot_index++, img);
+                }
+
             }
         }
         
@@ -94,8 +91,7 @@ void Detector::Detect_Run()
 }
 
 void Detector::img_light_enhance(Mat &img, Mat &img_hsv){
-    if(!img.empty())
-    {
+    if(!img.empty()){
         int hmin = 0;
         int hmax = 50;
         int smin = 87;
@@ -117,7 +113,6 @@ void Detector::img_light_enhance(Mat &img, Mat &img_hsv){
         split(img, hsv_channels);
         // 对V通道进行自适应直方图均衡化
 
-        // cout<<"警告⚠ 使用自适应直方图均衡化会导致奇怪的黑色色块出现，使用角点时不建议使用"<<endl;
         // Ptr<CLAHE> clahe = createCLAHE(2.0,tileGridSize=(8,8)).apply(hsv_channels[2],hsv_channels[2]);
         createCLAHE(2.0,Size(8,8))->apply(hsv_channels[2],hsv_channels[2]);
         // 三通道合并
@@ -1236,25 +1231,26 @@ void Detector::get_white_corner(Mat &img, vector<vector<Point>> corner_contour)
 void Detector::find_site_corner(Mat &img)
 {
     Mat output;
+    corner_cnt = 0;
 
-    //图像预处理，得到角点
+    // 图像预处理，得到角点
     cvtColor(img, output, COLOR_BGR2HSV);
-    if(param.camp == 0)
-        inRange(output, Scalar(125, 0, 150), Scalar(180, 255, 255), output); //red
+    if (param.camp == 0)
+        inRange(output, Scalar(0, 0, 150), Scalar(255, 255, 255), output); // red
     else
-        inRange(output, Scalar(78, 72, 147), Scalar(122, 255, 255), output); //blue
+        inRange(output, Scalar(78, 72, 147), Scalar(122, 255, 255), output); // blue
 
     // Mat kernel_middle = getStructuringElement(MORPH_RECT, Size(5, 5));
     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-    morphologyEx(output, output, MORPH_CLOSE, kernel, Point(-1, -1), 3);
-    //  dilate(output, output, kernel, Point(-1, -1), 3);
     //  erode(output, output, kernel, Point(-1, -1), 3);
-    morphologyEx(output, output, MORPH_OPEN, kernel, Point(-1, -1), 2);
+    // morphologyEx(output, output, MORPH_CLOSE, kernel, Point(-1, -1), 1);
+    //  dilate(output, output, kernel, Point(-1, -1), 3);
+    // morphologyEx(output, output, MORPH_OPEN, kernel, Point(-1, -1), 1);
     medianBlur(output, output, 3);
 
     imshow("output", output);
-
-    //寻找角点轮廓
+    thresh = output;//得到处理后的图片，用于后续再次寻找轮廓
+    // 寻找角点轮廓
     vector<vector<Point>> contours;
     vector<Vec4i> hierarchy;
     findContours(output, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
@@ -1269,20 +1265,23 @@ void Detector::find_site_corner(Mat &img)
         // cout << "area:" << area << endl;
         // cout << "rate:" << rate << endl;
 
-        //通过旋转矩形面积、长宽比、矩形与角点轮廓的面积比来筛选角点
-        if (rate >= 0.4 && rate <= 2.5 && area >= 800 && area <= 10000 && contourArea(contours[i]) / area <= 0.65)
+        // 通过旋转矩形面积、长宽比、矩形与角点轮廓的面积比来筛选角点
+        if (rate >= 0.3 && rate <= 3 && area >= 400 && area <= 15000 && contourArea(contours[i]) / area <= 0.7)
         {
-            //将四个角点座标放入同一个容器中
+            // 将四个角点座标放入同一个容器中
             for (int j = 0; j < contours[i].size(); j++)
             {
                 station_contours.push_back(contours[i][j]);
             }
-            //选出面积最小的角点（即右上角角点）
+            // 选出面积最小的角点（即右上角角点）
             if (contourArea(contours[i]) < min_corner_area)
             {
                 min_corner_area = contourArea(contours[i]);
                 min_corner_index = i;
             }
+            corner_cnt++;
+            putText(img, "area:"+to_string(contourArea(contours[i])), contours[i][0], FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2, 5);
+            putText(img, "rate:"+to_string(contourArea(contours[i]) / area), Point(contours[i][0].x, contours[i][0].y + 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2, 5);
             // cout << "area:" << area << endl;
             // cout << "contour/rec rate:" << contourArea(contours[i]) / area << endl;
             // Point2f p[4];
@@ -1293,12 +1292,20 @@ void Detector::find_site_corner(Mat &img)
             // }
         }
     }
-    //提取右上角角点的一个点单独储存，用于后续按顺序输出角点座标
-    square_contour.push_back(contours[min_corner_index][0]);
+   
+
+    if (contours.size() > 0){
+     // 找到最小面积角点的外接旋转矩形面积
+
+        // RotatedRect rec = minAreaRect(contours[min_corner_index]);
+        min_corner_rec = contourArea(contours[min_corner_index]);
+        // 提取右上角角点的一个点单独储存，用于后续按顺序输出角点座标
+        square_contour.push_back(contours[min_corner_index][0]);
+        putText(img, "square:"+to_string(contours[min_corner_index][0].x)+","+to_string(contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        putText(img, "min_aera:"+to_string(min_corner_rec), Point(0, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+    }
 
 }
-
-
 
 /// @brief get coordinates of exchange station
 /// @param img, the original picture
@@ -1312,36 +1319,101 @@ void Detector::get_station_side(Mat &img)
     vector<Point> hull;
     vector<Point> poly;
 
-    //通过凸包和多边形拟合框出四个角点
+    // 通过凸包和多边形拟合框出四个角点
     convexHull(Mat(station_contours), hull, false);
     approxPolyDP(hull, poly, 25, true);
 
-    if (poly.size() == 4)
+    if (corner_cnt >= 4)
     {
 
-        for (int i = 0; i < 4; i++) // 计算各角点到正方形点的距离
+        // 抠图
+        Mat mask;
+        mask = Mat::zeros(thresh.size(), CV_8UC1); // 设置蒙版
+
+        fillPoly(mask, poly, Scalar(255, 255, 255)); // 将凸包区域设置为白色
+
+        // mask(rec).setTo(255);
+        thresh.copyTo(mask, mask);
+
+        // 找到区域中所有轮廓，并挑选出比最小角点面积还小的轮廓即为正方形点
+        vector<vector<Point>> contours;
+        vector<Vec4i> hierarchy;
+        findContours(mask, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+        for (int i = 0; i < contours.size(); i++)
         {
-            len[i] = sqrt((poly[i].x - square_contour[0].x) * (poly[i].x - square_contour[0].x) + (poly[i].y - square_contour[0].y) * (poly[i].y - square_contour[0].y));
-        }
-        double len_min = len[0];
-        int min_index = 0;
-        for (int i = 1; i < 4; i++) // 找到最小距离
-        {
-            if (len[i] < len_min)
+            RotatedRect rec = minAreaRect(contours[i]);
+            double area = float(rec.size.width) * float(rec.size.height);
+            if (area < min_corner_rec && area > 50)
             {
-                len_min = len[i];
-                min_index = i;
+                putText(img, "area:"+to_string(area), contours[i][0], FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
+                square_contour.clear();
+                square_contour.push_back(contours[i][0]);
+                cv::circle(img, contours[i][0], 3, cv::Scalar(0, 255, 255), 3);
             }
         }
-        //从右上角开始输出角点
-        for (int i = 0; i < 4; i++)
-        {
-            cout << poly[(min_index + i) % 4] << endl;
-            anchor_temp.push_back(poly[(min_index + i) % 4]);
+
+
+        if(square_contour.size() >= 0){
+            cv::circle(img, square_contour[0], 3, cv::Scalar(255, 255, 255), 3);
+            for (int i = 0; i < 4; i++) // 计算各角点到正方形点的距离
+            {
+                len[i] = sqrt((poly[i].x - square_contour[0].x) * (poly[i].x - square_contour[0].x) + (poly[i].y - square_contour[0].y) * (poly[i].y - square_contour[0].y));
+            }
+            double len_min = len[0];
+            int min_index = 0;
+            for (int i = 1; i < 4; i++) // 找到最小距离
+            {
+                if (len[i] < len_min)
+                {
+                    len_min = len[i];
+                    min_index = i;
+                }
+            }
+            // 从右上角开始输出角点
+            for (int i = 0; i < 4; i++)
+            {
+                cout << poly[(min_index + i) % 4] << endl;
+                anchor_temp.push_back(poly[(min_index + i) % 4]);
+            }
+            anchor_point.push_back(anchor_temp);
+            polylines(img, poly, true, Scalar(0, 255, 0), 2, 8, 0);
+            cv::circle(img, poly[min_index], 5, cv::Scalar(255, 0, 255), 5);
         }
-        anchor_point.push_back(anchor_temp);
-        polylines(img, poly, true, Scalar(0, 255, 0), 2, 8, 0);
+
     }
     else
-        logger.warn("Wrong number of poly:{}", poly.size());
+        logger.warn("Wrong number of poly:{}", corner_cnt);
+}
+
+
+void Detector::initVideoRaw() {
+
+    for(auto num: param.detector_writer_set){
+        VideoWriter videoWriter(param.get_log_path(num, param.detector_prefix) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
+        detector_writer_map.insert({num,videoWriter});
+        logger.critical("write video:{}", param.get_log_path(num, param.detector_prefix));
+    }
+}
+
+void Detector::writeVideoRaw(cv::Mat &img) {
+
+    if(detector_writer_map.empty()){
+        return;
+    }
+    for(auto num: param.detector_writer_set){
+        VideoWriter videoWriter = detector_writer_map.at(num);
+        videoWriter.write(img);
+        logger.info("write video:{}", param.get_log_path(num, param.detector_prefix));
+        if (frame_index++ >= 200) {
+            frame_index = 0;
+            videoWriter.release();
+            detector_writer_map.at(num) = VideoWriter(param.get_log_path(num, param.detector_prefix) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
+        }
+    }
+}
+
+void Detector::writeImageRaw(int index, Mat& img){
+    for(auto num: param.writer_set){
+        imwrite(param.get_log_path(num, param.shot_prefix, index) + ".jpg", img);
+    }
 }

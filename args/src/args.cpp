@@ -73,9 +73,15 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     camp = visual_camera.at("camp").as_integer();
     auto &transform = visual.at("transform");
     tran_tvecx = transform.at("tran_tvecx").as_floating();
-    tran_tvecy = transform.at("tran_tvecx").as_floating();
-    tran_tvecz = transform.at("tran_tvecx").as_floating();
-
+    tran_tvecy = transform.at("tran_tvecy").as_floating();
+    tran_tvecz = transform.at("tran_tvecz").as_floating();
+    auto &calibration = robot_constants.at("calibration");
+    cali_x = calibration.at("cali_x").as_floating();
+    cali_y = calibration.at("cali_y").as_floating();
+    cali_z = calibration.at("cali_z").as_floating();
+    cali_roll = calibration.at("cali_roll").as_floating();
+    cali_yaw = calibration.at("cali_yaw").as_floating();
+    cali_pitch = calibration.at("cali_pitch").as_floating();
 
 
     // Sensor
@@ -85,6 +91,7 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     frame_rate = camera.at("frame_rate").as_integer();
     frame_height = camera.at("frame_height").as_integer();
     frame_width = camera.at("frame_width").as_integer();
+    codec =  cv::VideoWriter::fourcc('m', 'p', '4', 'v');
 
     exposure_time_mine = camera.at("exposure_time_mine").as_floating();
     exposure_time_exchangesite = camera.at("exposure_time_exchangesite").as_floating();
@@ -102,7 +109,12 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     // Video
     auto &video = config.at("video");
     image_read = video.at("image_read").as_boolean();
+    image_log = video.at("image_log").as_boolean();
     image_path = std::string(ROOT) + std::string(video.at("image_path").as_string());
+    cam_map = {{0,"/dev/video0"}};
+    cap_set = {0};
+    writer_set = {0};
+    detector_writer_set = {0};
 
     // Log
     auto &log = config.at("log");
@@ -159,10 +171,6 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     const time_t cnow = std::chrono::system_clock::to_time_t(now);
     std::strftime(buffer, 20, "%m_%d_%H:%M", std::localtime(&cnow));
     asc_begin_time = buffer;
-    // asc_begin_time.replace(asc_begin_time.find('\n'), 1, "");
-    // std::replace(asc_begin_time.begin(), asc_begin_time.end(), ' ', '_');
-    // std::replace(asc_begin_time.begin(), asc_begin_time.end(), ':', '_');
-
 
 }
 
@@ -178,6 +186,19 @@ void DetectorArgs::init(const toml::value &config)
 
     path2model_exchangesite =std::string(ROOT) + std::string(exchangesite.at("path").as_string());
     path2model_mine = std::string(ROOT) + std::string(mine.at("path").as_string());
+}
+
+string Args::get_log_path(int num, string prefix, int index){
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    char timestamp[20];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M-%S", std::localtime(&t_c));
+    string path = prefix + param.cam_map.at(num);
+    fs::path dirPath = path;
+    if (!fs::exists(dirPath)) {
+        fs::create_directories(dirPath);
+    }
+    return std::string(path) + '/' + timestamp + to_string(index);
 }
 
 } // args

@@ -1,5 +1,5 @@
 # Global
-run_mode = "MINE_MODE" # default run mode
+run_mode = "EXCHANGE_SITE_MODE" # default run mode
 
 [predictor]
 constants = "engineer.toml" # Predictor相关常数文件
@@ -14,7 +14,7 @@ video = "../last.mp4"
 # 相机内录
 sensor_need = true
 # 含目标框内录
-detector_need = false
+detector_need = true
 # Image Recorder
 image_need = false
 
