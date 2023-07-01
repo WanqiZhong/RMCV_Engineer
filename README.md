@@ -69,3 +69,19 @@
 3. 仍存在的问题：
 
    3.1 相机线程被杀问题仍在排查
+
+### 2023/7/1 V3.0
+
+##### 这是一份几个世纪后的更新
+1. 稳定性
+   1.1 蓝色兑换站识别 约为 95%
+   1.2 红色兑换站识别 约为 80%
+2. 功能
+   修改 config.toml 中的参数以使用回放模式
+   ```
+   image_log = true # true 内录模式 false 相机模式
+   image_read = false  # true 为图片回放 false 为视频内录回放
+   image_path = "benchmark/B1.mp4" 
+   # 以EngineeringCV根目录开始的视频内录或图像路径，如/home/ubuntu/EngineeringCV/benchmark/B1.mp4,写作如上
+   ```
+
