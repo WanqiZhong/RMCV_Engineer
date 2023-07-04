@@ -1266,7 +1266,7 @@ void Detector::find_site_corner(Mat &img)
         // cout << "rate:" << rate << endl;
 
         // 通过旋转矩形面积、长宽比、矩形与角点轮廓的面积比来筛选角点
-        if (rate >= 0.3 && rate <= 3 && area >= 400 && area <= 15000 && contourArea(contours[i]) / area <= 0.7)
+        if (rate >= 0.3 && rate <= 3 && area >= 400 && area <= 10000 && contourArea(contours[i]) / area <= 0.7)
         {
             // 将四个角点座标放入同一个容器中
             for (int j = 0; j < contours[i].size(); j++)
@@ -1323,7 +1323,7 @@ void Detector::get_station_side(Mat &img)
     convexHull(Mat(station_contours), hull, false);
     approxPolyDP(hull, poly, 25, true);
 
-    if (corner_cnt >= 4)
+    if (corner_cnt == 4)
     {
 
         // 抠图
@@ -1380,6 +1380,21 @@ void Detector::get_station_side(Mat &img)
             cv::circle(img, poly[min_index], 5, cv::Scalar(255, 0, 255), 5);
         }
 
+        RotatedRect resRec = minAreaRect(poly);
+        float area = resRec.size.width * resRec.size.height;
+        // get poly area
+        float poly_area = contourArea(poly);
+        putText(img, "poly_area:"+to_string(poly_area), Point(0, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        putText(img, "area:"+to_string(area), Point(0, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        putText(img, "rate:"+to_string(poly_area / area), Point(0, 150), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        if(poly_area / area < 0.7){
+            anchor_point.clear();
+            logger.warn("poly area is wrong");
+            putText(img, "Wrong!", Point(0, 200), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 5);
+        }else{
+            putText(img, "Right!", Point(0, 200), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0), 2, 5);
+        }
+        
     }
     else
         logger.warn("Wrong number of poly:{}", corner_cnt);

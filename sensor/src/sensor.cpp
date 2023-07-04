@@ -81,6 +81,7 @@ void Sensor::Sensor_Run() {
         // Set camera index
         vision_cap = cap_map.at(param.vision_cam_index);
         operator_cap = cap_map.at(param.operator_cam_index);
+            
 
 
         if (!vision_cap.isOpened()) {

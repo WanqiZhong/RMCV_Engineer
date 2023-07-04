@@ -40,8 +40,8 @@ shot_prefix = "logs/screenshot"
 
 # Video
 [video]
+image_log = false
 image_read = false
-image_log = true
 image_path = "benchmark/B1.mp4"
 
 
