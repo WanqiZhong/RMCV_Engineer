@@ -1315,30 +1315,81 @@ void Detector::find_site_corner(Mat &img)
 /// @param square_corner_contour, points of square corner's contour;
 void Detector::get_station_side(Mat &img)
 {
-    double len[4] = {0};
-    vector<Point> anchor_temp;
-
+    DebugUI debug_ui;
     vector<Point> hull;
     vector<Point> poly;
-
-    // 通过凸包和多边形拟合框出四个角点
-    convexHull(Mat(station_contours), hull, false);
+    convexHull(Mat(four_station_contours), hull, false);
     approxPolyDP(hull, poly, 25, true);
+    polylines(img, poly, true, Scalar(255, 0, 0), 2, 8, 0);
+    if (corner_cnt == 4){
+        get_station_corner(img, anchor_contour, debug_ui);
+    }else if(corner_cnt < 4){
+        logger.warn("Wrong number of poly:{}", corner_cnt);
+            if(!anchor_contour.empty())
+                anchor_point.push_back(anchor_contour);
+    }else if(corner_cnt > 4){
+        // 对于大于4个的统计数，遍历所有四个点的组合
+        for (int i = 0; i < anchor_contour.size() - 4; i++)
+        {
+            for (int j = i + 1; j < anchor_contour.size() - 3; j++)
+            {
+                for (int k = j + 1; k < anchor_contour.size() - 2 k++)
+                {
+                    for (int l = k + 1; l < anchor_contour.size() - 1; l++)
+                    {
+                        vector<Point> temp;
+                        temp.push_back(anchor_contour[i]);
+                        temp.push_back(anchor_contour[j]);
+                        temp.push_back(anchor_contour[k]);
+                        temp.push_back(anchor_contour[l]);
+                        get_station_corner(img, temp, debug_ui);
+                    }
+                }
+            }
+        }
+    }
+    draw_debug_ui(img, debug_ui);
+}
 
-    if (corner_cnt == 4)
-    {
-        // 抠图
+void Detector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
+        for(int i = 0; i < debug_ui.small_square_point.size(); ++i){
+            putText(img, "area:"+to_string(debug_ui.small_square_area[i]), debug_ui.small_square_point[i], FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
+            cv::circle(img, debug_ui.small_square_point[i], 5, cv::Scalar(0, 255, 255), 5);
+        }
+        cv::circle(img, debug_ui.poly[debug_ui.min_index], 5, cv::Scalar(255, 0, 255), 5);
+        polylines(img, debug_ui.poly, true, Scalar(0, 255, 0), 2, 8, 0);
+        putText(img, "poly_area:"+to_string(contourArea(debug_ui.poly)), Point(0, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        putText(img, "area:"+to_string(debug_ui.area), Point(0, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        putText(img, "rate:"+to_string(debug_ui.match_rate), Point(0, 150), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        if(debug_ui.right_flag){
+            putText(img, "Right!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 255, 0), 2, 5);
+        }else{
+            putText(img, "Wrong!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255), 2, 5);
+        }
+}
+
+void Detector::get_station_corner(Mat &img, vector<vector<Point>> four_station_contours, DebugUI &debug_ui){
+        
+        double len[4] = {0};
+        int min_index = 0;
+        vector<Point> anchor_temp;
+        vector<Point> hull;
+        vector<Point> poly;
+        vector<vector<Point>> contours;
+        vector<Vec4i> hierarchy;
+
+        // 通过凸包和多边形拟合框出四个角点
+        convexHull(Mat(four_station_contours), hull, false);
+        approxPolyDP(hull, poly, 25, true);
+
         Mat mask;
         mask = Mat::zeros(thresh.size(), CV_8UC1); // 设置蒙版
-
         fillPoly(mask, poly, Scalar(255, 255, 255)); // 将凸包区域设置为白色
 
         // mask(rec).setTo(255);
         thresh.copyTo(mask, mask);
 
         // 找到区域中所有轮廓，并挑选出比最小角点面积还小的轮廓即为正方形点
-        vector<vector<Point>> contours;
-        vector<Vec4i> hierarchy;
         findContours(mask, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
         for (int i = 0; i < contours.size(); i++)
         {
@@ -1346,13 +1397,10 @@ void Detector::get_station_side(Mat &img)
             double area = float(rec.size.width) * float(rec.size.height);
             if (area < min_corner_rec && area > 50)
             {
-                putText(img, "area:"+to_string(area), contours[i][0], FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
                 square_contour.clear();
                 square_contour.push_back(contours[i][0]);
-                cv::circle(img, contours[i][0], 3, cv::Scalar(0, 255, 255), 3);
             }
         }
-
 
         if(square_contour.size() >= 0){
             cv::circle(img, square_contour[0], 3, cv::Scalar(255, 255, 255), 3);
@@ -1361,7 +1409,6 @@ void Detector::get_station_side(Mat &img)
                 len[i] = sqrt((poly[i].x - square_contour[0].x) * (poly[i].x - square_contour[0].x) + (poly[i].y - square_contour[0].y) * (poly[i].y - square_contour[0].y));
             }
             double len_min = len[0];
-            int min_index = 0;
             for (int i = 1; i < 4; i++) // 找到最小距离
             {
                 if (len[i] < len_min)
@@ -1377,32 +1424,36 @@ void Detector::get_station_side(Mat &img)
                 anchor_temp.push_back(poly[(min_index + i) % 4]);
             }
             anchor_point.push_back(anchor_temp);
-            polylines(img, poly, true, Scalar(0, 255, 0), 2, 8, 0);
-            cv::circle(img, poly[min_index], 5, cv::Scalar(255, 0, 255), 5);
         }
 
         RotatedRect resRec = minAreaRect(poly);
         float area = resRec.size.width * resRec.size.height;
         // get poly area
         float poly_area = contourArea(poly);
-        putText(img, "poly_area:"+to_string(poly_area), Point(0, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
-        putText(img, "area:"+to_string(area), Point(0, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
-        putText(img, "rate:"+to_string(poly_area / area), Point(0, 150), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
-        if(poly_area / area < 0.7){
-            anchor_point.clear();
-            logger.warn("poly area is wrong");
-            putText(img, "Wrong!", Point(0, 200), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 5);
-        }else{
-            putText(img, "Right!", Point(0, 200), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0), 2, 5);
-        }   
-    }
-    else{
-        logger.warn("Wrong number of poly:{}", corner_cnt);
-        if(corner_cnt < 4){
-            if(!anchor_contour.empty())
-                anchor_point.push_back(anchor_contour);
+
+        if(poly_area / area > debug_ui.match_rate){
+            debug_ui.match_rate = poly_area / area;
+            debug_ui.poly = poly;
+            debug_ui.area = area;
+            debug_ui.min_index = min_index;
+            debug_ui.small_square_point.clear();
+            for (int i = 0; i < contours.size(); i++)
+            {
+                RotatedRect rec = minAreaRect(contours[i]);
+                double area = float(rec.size.width) * float(rec.size.height);
+                if (area < min_corner_rec && area > 50)
+                {
+                    debug_ui.small_square_area.push_back(area);
+                    debug_ui.small_square_point.push_back(contours[i][0]);
+                }
+            }
+            if(debug_ui.match_rate < 0.7){
+                anchor_point.clear();
+                debug_ui.right_flag = false;
+            }else{
+                debug_ui.right_flag = true;
+            }
         }
-    }
 }
 
 

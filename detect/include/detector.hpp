@@ -30,6 +30,16 @@ using namespace cv;
 #define gold_vmin 37
 #define gold_vmax 255
 
+typedef struct _debugUI{
+    vector<Point> small_square_point;
+    vector<double> small_square_area;
+    vector<Point> poly;
+    float area;
+    float match_rate;
+    int min_index;
+    bool right_flag;
+}DebugUI;
+
 
 
 class Detector
@@ -123,6 +133,8 @@ class Detector
         /* ExchangeSite  */
         void find_site_corner(Mat &img);
         void get_station_side(Mat &img);
+        void get_station_corner(Mat &img, vector<vector<Point>> four_station_contours, DebugUI &debug_ui);
+        void draw_debug_ui(Mat &img, DebugUI &debug_ui);
 
 
         void initVideoRaw();
