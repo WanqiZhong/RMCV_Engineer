@@ -21,20 +21,22 @@ void Calculator::Calculate_Run()
     while(param.get_run_mode()!=HALT)
     {
         anchor_point.clear();
-        for(int i = 0; i < 4; ++i){
-            angle_msg.anchor_x[i] = 0;
-            angle_msg.anchor_y[i] = 0;
-        }
         try{
             MINE_POSITION_MSG msg = mine_sub.pop();
             anchor_point = msg.goal;
+            ANGLE_DATA_MSG angle_msg;
+            for(int i = 0; i < 4; ++i){
+                angle_msg.anchor_x[i] = 0;
+                angle_msg.anchor_y[i] = 0;
+            }
             if(msg.goal.empty() || msg.goal[0].size() != 4){
-                ANGLE_DATA_MSG angle_msg;
                 angle_msg.is_valid = false;
-                for(int i = 0; i < msg.goal[0].size(); ++i){
-                    angle_msg.anchor_x[i] = anchor_point[0][i].x;
-                    angle_msg.anchor_y[i] = anchor_point[0][i].y;
-                    logger.info("anchor_point_{}:[{},{}]",i,anchor_point[0][i].x,anchor_point[0][i].y)
+                if(!msg.goal.empty()){
+                    for(int i = 0; i < msg.goal[0].size(); ++i){
+                    angle_msg.anchor_x[i] = int(anchor_point[0][i].x);
+                    angle_msg.anchor_y[i] = int(anchor_point[0][i].y);
+                    logger.info("anchor_point_{}:[{},{}]",i,anchor_point[0][i].x,anchor_point[0][i].y);
+                    }
                 }
                 angle_pub.push(angle_msg);
                 logger.warn("No anchor_point, can't solve pnp.");
@@ -53,9 +55,12 @@ void Calculator::Calculate_Run()
         
         ANGLE_DATA_MSG angle_msg;
         angle_msg.is_valid = true;
-        angle_msg.ratation_right = true;
         // change to float
 
+        for(int i = 0; i < 4; ++i){
+            angle_msg.anchor_x[i] = int(anchor_point[0][i].x);
+            angle_msg.anchor_y[i] = int(anchor_point[0][i].y);
+        }
         angle_msg.roll = float(-eulerAngle2[0]);
         angle_msg.pitch = float(eulerAngle2[1]);
         angle_msg.yaw = float(-eulerAngle2[2]);
@@ -161,13 +166,13 @@ void Calculator::CalculatePnp()
 
         Eigen::Vector3d eulerAngle = R.eulerAngles(2, 1, 0);  // R.eulerAngles(2:z, 1:y, 0:x)
         eulerAngle = eulerAngle / M_PI * 180.0;
-        logger.info("Eigen库 roll:{} pitch:{} yaw:{}",eulerAngle[2],eulerAngle[1],eulerAngle[0]);
+        // logger.info("Eigen库 roll:{} pitch:{} yaw:{}",eulerAngle[2],eulerAngle[1],eulerAngle[0]);
     
         
         /* ====================================  */
         eulerAngle2 = rotationMatrixToEulerAngles(R);
         eulerAngle2 = eulerAngle2 / M_PI * 180.0;
-        logger.info("定轴XYZ(rpy) roll:{} pitch:{} yaw:{}",eulerAngle2[0],eulerAngle2[1],eulerAngle2[2]);
+        logger.info("roll:{} pitch:{} yaw:{}",eulerAngle2[0],eulerAngle2[1],eulerAngle2[2]);
 
 
         /* ====================================  */
@@ -183,7 +188,7 @@ void Calculator::CalculatePnp()
         ypr(1) = p;
         ypr(2) = r;
         ypr = ypr / M_PI * 180.0;
-        logger.info("动轴ZYX(ypr) roll:{}, pitch:{}, yaw:{}",ypr(2),ypr(1),ypr(0));
+        // logger.info("动轴ZYX(ypr) roll:{}, pitch:{}, yaw:{}",ypr(2),ypr(1),ypr(0));
 
         // position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
         cvPosition = final_Rvec * tvec + final_Tvec;

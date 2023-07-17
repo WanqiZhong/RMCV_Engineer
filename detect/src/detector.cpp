@@ -1076,7 +1076,7 @@ void Detector::draw_side(Mat img, vector<Point> side, Point square, int corner_n
         min_index = (min_index + 2) % 4;
         for (int i = 0; i < 4; i++)
         {
-            cout << poly[(min_index + i) % 4] << endl;
+            // cout << poly[(min_index + i) % 4] << endl;
             anchor_temp.push_back(poly[(min_index + i) % 4]);
         }
         anchor_point.push_back(anchor_temp);
@@ -1300,7 +1300,7 @@ void Detector::find_site_corner(Mat &img)
      // 找到最小面积角点的外接旋转矩形面积
 
         // RotatedRect rec = minAreaRect(contours[min_corner_index]);
-        min_corner_rec = contourArea(contours[min_corner_index])
+        min_corner_rec = contourArea(contours[min_corner_index]);
         // 提取右上角角点的一个点单独储存，用于后续按顺序输出角点座标
         square_contour.push_back(contours[min_corner_index][0]);
         putText(img, "square:"+to_string(contours[min_corner_index][0].x)+","+to_string(contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
@@ -1373,7 +1373,7 @@ void Detector::get_station_side(Mat &img)
             // 从右上角开始输出角点
             for (int i = 0; i < 4; i++)
             {
-                cout << poly[(min_index + i) % 4] << endl;
+                // cout << poly[(min_index + i) % 4] << endl;
                 anchor_temp.push_back(poly[(min_index + i) % 4]);
             }
             anchor_point.push_back(anchor_temp);
@@ -1399,8 +1399,8 @@ void Detector::get_station_side(Mat &img)
     else{
         logger.warn("Wrong number of poly:{}", corner_cnt);
         if(corner_cnt < 4){
-
-            anchor_point.push(anchor_contour);
+            if(!anchor_contour.empty())
+                anchor_point.push_back(anchor_contour);
         }
     }
 }
@@ -1423,7 +1423,7 @@ void Detector::writeVideoRaw(cv::Mat &img) {
     for(auto num: param.detector_writer_set){
         VideoWriter videoWriter = detector_writer_map.at(num);
         videoWriter.write(img);
-        logger.info("write video:{}", param.get_log_path(num, param.detector_prefix));
+        // logger.info("write video:{}", param.get_log_path(num, param.detector_prefix));
         if (frame_index++ >= 200) {
             frame_index = 0;
             videoWriter.release();

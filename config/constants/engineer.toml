@@ -52,8 +52,8 @@ gold_maxval = 255
 [traditional.changesite]
 site_min_rate = 0.3
 site_max_rate = 3.0
-site_min_area = 400
-site_max_area = 12000
+site_min_area = 400.0
+site_max_area = 12000.0
 site_area_rate = 0.7
 
 
