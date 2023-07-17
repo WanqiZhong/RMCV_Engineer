@@ -75,6 +75,10 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     tran_tvecx = transform.at("tran_tvecx").as_floating();
     tran_tvecy = transform.at("tran_tvecy").as_floating();
     tran_tvecz = transform.at("tran_tvecz").as_floating();
+    bias_tevcx = transform.at("bias_tevcx").as_floating();
+    bias_tevcy = transform.at("bias_tevcy").as_floating();
+    bias_tevcz = transform.at("bias_tevcz").as_floating();
+
     auto &calibration = robot_constants.at("calibration");
     cali_x = calibration.at("cali_x").as_floating();
     cali_y = calibration.at("cali_y").as_floating();
@@ -83,6 +87,16 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     cali_yaw = calibration.at("cali_yaw").as_floating();
     cali_pitch = calibration.at("cali_pitch").as_floating();
 
+    auto &traditional = robot_constants.at("traditional");
+    auto &gold = traditional.at("gold");
+    auto &changesite = traditional.at("changesite");
+    gold_maxval = gold.at("maxval").as_integer();
+    gold_minval = gold.at("minval").as_integer();
+    site_min_rate = changesite.at("site_min_rate").as_floating();
+    site_max_rate = changesite.at("site_max_rate").as_floating();
+    site_min_area = changesite.at("site_min_area").as_floating();
+    site_max_area = changesite.at("site_max_area").as_floating();
+    site_area_rate = changesite.at("site_area_rate").as_floating();
 
     // Sensor
     auto &local_sensor = robot_constants.at("sensor");

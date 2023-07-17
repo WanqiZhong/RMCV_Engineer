@@ -1267,7 +1267,7 @@ void Detector::find_site_corner(Mat &img)
         // cout << "rate:" << rate << endl;
 
         // 通过旋转矩形面积、长宽比、矩形与角点轮廓的面积比来筛选角点
-        if (rate >= 0.3 && rate <= 3 && area >= 400 && area <= 12000 && contourArea(contours[i]) / area <= 0.7)
+        if (rate >= param.site_min_rate && rate <= param.site_max_rate && area >= param.site_min_area && area <= param.site_max_area && contourArea(contours[i]) / area <= param.site_area_rate)
         {
             // 将四个角点座标放入同一个容器中
             for (int j = 0; j < contours[i].size(); j++)
@@ -1399,7 +1399,7 @@ void Detector::get_station_side(Mat &img)
     else{
         logger.warn("Wrong number of poly:{}", corner_cnt);
         if(corner_cnt < 4){
-            
+
             anchor_point.push(anchor_contour);
         }
     }

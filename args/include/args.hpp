@@ -58,6 +58,9 @@ namespace args
         float tran_tvecx;
         float tran_tvecy;
         float tran_tvecz;
+        float bias_tevcx;
+        float bias_tevcy;
+        float bias_tevcz;
 
         float cali_x;
         float cali_y;
@@ -65,7 +68,6 @@ namespace args
         float cali_roll;
         float cali_yaw;
         float cali_pitch;
-
 
         // ============== Camera =====================
         std::string serial_number;
@@ -133,6 +135,15 @@ namespace args
         vector<int> writer_set;
         vector<int> detector_writer_set;
         string get_log_path(int num, string prefix, int index = 0);
+
+        // ================= Traditional ======================
+        int gold_thresh;
+        int gold_maxval;
+        float site_min_rate;
+        float site_max_rate;
+        int site_min_area;
+        int site_max_area;
+        float site_area_rate;
 
         DebugArgs debug;
 
