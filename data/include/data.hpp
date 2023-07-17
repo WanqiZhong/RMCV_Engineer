@@ -22,7 +22,6 @@ namespace ml // machine learning
 {
     struct OutLayer
     {
-
         int idx;
         int stride;
         int num_anchor;
@@ -110,7 +109,8 @@ struct HEART_BEAT
 struct ANGLE_DATA_MSG
 {
     uint8_t is_valid;
-    uint8_t ratation_right;
+    uint16_t anchor_x[4];
+    uint16_t anchor_y[4];
     float x;
     float y;
     float z;
