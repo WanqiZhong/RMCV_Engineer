@@ -60,6 +60,7 @@ class Detector
         int min_corner_index;
         vector<Point> station_contours;
         vector<Point> square_contour;
+        vector<Point> anchor_contour;
         double min_corner_rec;//最小面积的角点的外接矩形面积
         int corner_cnt = 0;
         Mat thresh;

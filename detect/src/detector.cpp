@@ -280,6 +280,7 @@ void Detector::ExchangeSite_Run(Mat &img) {
     station_contours.clear();
     square_contour.clear();
     anchor_point.clear();
+    anchor_contour.clear();
     find_site_corner(img);
     if (station_contours.size() == 0)
     {
@@ -1274,6 +1275,7 @@ void Detector::find_site_corner(Mat &img)
                 station_contours.push_back(contours[i][j]);
             }
             // 选出面积最小的角点（即右上角角点）
+            anchor_contour.push_back(contours[i][0]);
             if (contourArea(contours[i]) < min_corner_area)
             {
                 min_corner_area = contourArea(contours[i]);
@@ -1298,7 +1300,7 @@ void Detector::find_site_corner(Mat &img)
      // 找到最小面积角点的外接旋转矩形面积
 
         // RotatedRect rec = minAreaRect(contours[min_corner_index]);
-        min_corner_rec = contourArea(contours[min_corner_index]);
+        min_corner_rec = contourArea(contours[min_corner_index])
         // 提取右上角角点的一个点单独储存，用于后续按顺序输出角点座标
         square_contour.push_back(contours[min_corner_index][0]);
         putText(img, "square:"+to_string(contours[min_corner_index][0].x)+","+to_string(contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
@@ -1325,7 +1327,6 @@ void Detector::get_station_side(Mat &img)
 
     if (corner_cnt == 4)
     {
-
         // 抠图
         Mat mask;
         mask = Mat::zeros(thresh.size(), CV_8UC1); // 设置蒙版
@@ -1393,11 +1394,15 @@ void Detector::get_station_side(Mat &img)
             putText(img, "Wrong!", Point(0, 200), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 2, 5);
         }else{
             putText(img, "Right!", Point(0, 200), FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 255, 0), 2, 5);
-        }
-        
+        }   
     }
-    else
+    else{
         logger.warn("Wrong number of poly:{}", corner_cnt);
+        if(corner_cnt < 4){
+            
+            anchor_point.push(anchor_contour);
+        }
+    }
 }
 
 

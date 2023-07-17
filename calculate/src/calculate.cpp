@@ -21,16 +21,25 @@ void Calculator::Calculate_Run()
     while(param.get_run_mode()!=HALT)
     {
         anchor_point.clear();
+        for(int i = 0; i < 4; ++i){
+            angle_msg.anchor_x[i] = 0;
+            angle_msg.anchor_y[i] = 0;
+        }
         try{
             MINE_POSITION_MSG msg = mine_sub.pop();
-            if(msg.goal.empty()){
+            anchor_point = msg.goal;
+            if(msg.goal.empty() || msg.goal[0].size() != 4){
                 ANGLE_DATA_MSG angle_msg;
                 angle_msg.is_valid = false;
+                for(int i = 0; i < msg.goal[0].size(); ++i){
+                    angle_msg.anchor_x[i] = anchor_point[0][i].x;
+                    angle_msg.anchor_y[i] = anchor_point[0][i].y;
+                    logger.info("anchor_point_{}:[{},{}]",i,anchor_point[0][i].x,anchor_point[0][i].y)
+                }
                 angle_pub.push(angle_msg);
                 logger.warn("No anchor_point, can't solve pnp.");
                 continue;
             }
-            anchor_point = msg.goal;
             logger.info("Reiceve anchor_point:[{},{}],[{},{}],[{},{}],[{},{}]",anchor_point[0][0].x, \
             anchor_point[0][0].y,anchor_point[0][1].x,anchor_point[0][1].y,anchor_point[0][2].x,anchor_point[0][2].y, \
             anchor_point[0][3].x,anchor_point[0][3].y);
