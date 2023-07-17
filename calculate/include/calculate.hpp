@@ -47,7 +47,7 @@ class Calculator
         Mat final_Rvec_rpy = (Mat_<double>(3,3) <<  0, 0, -1,
                                                     1, 0, 0,
                                                     0,-1, 0);
-        Mat final_Tvec = (Mat_<double>(3,1) << param.tran_tvecx, param.tran_tvecy, param.tran_tvecz-20); // 相机与吸盘转换矩阵
+        Mat final_Tvec = (Mat_<double>(3,1) << param.tran_tvecx, param.tran_tvecy, param.tran_tvecz-25); // 相机与吸盘转换矩阵
         Eigen::Vector3d ypr = Eigen::Vector3d(0,0,0);
         Eigen::Vector3d position = Eigen::Vector3d(0,0,0);
         Eigen::Vector3d eulerAngle2 = Eigen::Vector3d(0,0,0);
