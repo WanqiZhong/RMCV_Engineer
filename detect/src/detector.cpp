@@ -1266,7 +1266,7 @@ void Detector::find_site_corner(Mat &img)
         // cout << "rate:" << rate << endl;
 
         // 通过旋转矩形面积、长宽比、矩形与角点轮廓的面积比来筛选角点
-        if (rate >= 0.3 && rate <= 3 && area >= 400 && area <= 12000 && contourArea(contours[i]) / area <= 0.7)
+        if (rate >= 0.3 && rate <= 3 && area >= 400 && area <= 10000 && contourArea(contours[i]) / area <= 0.7)
         {
             // 将四个角点座标放入同一个容器中
             for (int j = 0; j < contours[i].size(); j++)
