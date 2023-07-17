@@ -90,8 +90,8 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     auto &traditional = robot_constants.at("traditional");
     auto &gold = traditional.at("gold");
     auto &changesite = traditional.at("changesite");
-    gold_maxval = gold.at("maxval").as_integer();
-    gold_minval = gold.at("minval").as_integer();
+    gold_maxval = gold.at("gold_maxval").as_integer();
+    gold_thresh = gold.at("gold_thresh").as_integer();
     site_min_rate = changesite.at("site_min_rate").as_floating();
     site_max_rate = changesite.at("site_max_rate").as_floating();
     site_min_area = changesite.at("site_min_area").as_floating();
