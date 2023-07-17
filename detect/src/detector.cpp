@@ -281,6 +281,7 @@ void Detector::ExchangeSite_Run(Mat &img) {
     square_contour.clear();
     anchor_point.clear();
     anchor_contour.clear();
+    valid_contour.clear();
     find_site_corner(img);
     if (station_contours.size() == 0)
     {
@@ -1270,10 +1271,10 @@ void Detector::find_site_corner(Mat &img)
         if (rate >= param.site_min_rate && rate <= param.site_max_rate && area >= param.site_min_area && area <= param.site_max_area && contourArea(contours[i]) / area <= param.site_area_rate)
         {
             // 将四个角点座标放入同一个容器中
-            for (int j = 0; j < contours[i].size(); j++)
-            {
-                station_contours.push_back(contours[i][j]);
+            for (int j = 0; j < contours[i].size(); ++j){
+                all_contours.push_back(contours[i][j]);
             }
+            valid_contour.push_back(contours[i]);
             // 选出面积最小的角点（即右上角角点）
             anchor_contour.push_back(contours[i][0]);
             if (contourArea(contours[i]) < min_corner_area)
@@ -1297,8 +1298,7 @@ void Detector::find_site_corner(Mat &img)
    
 
     if (contours.size() > 0){
-     // 找到最小面积角点的外接旋转矩形面积
-
+        // 找到最小面积角点的外接旋转矩形面积
         // RotatedRect rec = minAreaRect(contours[min_corner_index]);
         min_corner_rec = contourArea(contours[min_corner_index]);
         // 提取右上角角点的一个点单独储存，用于后续按顺序输出角点座标
@@ -1318,31 +1318,42 @@ void Detector::get_station_side(Mat &img)
     DebugUI debug_ui;
     vector<Point> hull;
     vector<Point> poly;
-    convexHull(Mat(four_station_contours), hull, false);
+    convexHull(Mat(all_contours), hull, false);
     approxPolyDP(hull, poly, 25, true);
-    polylines(img, poly, true, Scalar(255, 0, 0), 2, 8, 0);
+    polylines(img, poly, true, Scalar(0, 0, 0), 2, 8, 0);
     if (corner_cnt == 4){
-        get_station_corner(img, anchor_contour, debug_ui);
+        for(int i = 0; i < valid_contour.size(); ++i){
+            for (int j = 0; j < valid_contour[i].size(); ++j){
+                station_contours.push_back(valid_contour[i][j]);
+            }
+        }
+        get_station_corner(img, station_contours, debug_ui);
     }else if(corner_cnt < 4){
         logger.warn("Wrong number of poly:{}", corner_cnt);
             if(!anchor_contour.empty())
                 anchor_point.push_back(anchor_contour);
     }else if(corner_cnt > 4){
         // 对于大于4个的统计数，遍历所有四个点的组合
-        for (int i = 0; i < anchor_contour.size() - 4; i++)
+        for (int i = 0; i < valid_contour.size() - 4; i++)
         {
-            for (int j = i + 1; j < anchor_contour.size() - 3; j++)
+            for (int j = i + 1; j < valid_contour.size() - 3; j++)
             {
-                for (int k = j + 1; k < anchor_contour.size() - 2 k++)
+                for (int k = j + 1; k < valid_contour.size() - 2; k++)
                 {
-                    for (int l = k + 1; l < anchor_contour.size() - 1; l++)
+                    for (int l = k + 1; l < valid_contour.size() - 1; l++)
                     {
-                        vector<Point> temp;
-                        temp.push_back(anchor_contour[i]);
-                        temp.push_back(anchor_contour[j]);
-                        temp.push_back(anchor_contour[k]);
-                        temp.push_back(anchor_contour[l]);
-                        get_station_corner(img, temp, debug_ui);
+                        vector<vector<Point>> temp;
+                        temp.push_back(valid_contour[i]);
+                        temp.push_back(valid_contour[j]);
+                        temp.push_back(valid_contour[k]);
+                        temp.push_back(valid_contour[l]);
+                        vector<Point> temp_station_contours;
+                        for(int i = 0; i < temp.size(); ++i){
+                            for (int j = 0; j < temp[i].size(); ++j){
+                                temp_station_contours.push_back(temp[i][j]);
+                            }
+                        }
+                        get_station_corner(img, temp_station_contours, debug_ui);
                     }
                 }
             }
@@ -1368,8 +1379,9 @@ void Detector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
         }
 }
 
-void Detector::get_station_corner(Mat &img, vector<vector<Point>> four_station_contours, DebugUI &debug_ui){
+void Detector::get_station_corner(Mat &img, vector<Point> four_station_contours, DebugUI &debug_ui){
         
+        vector<vector<Point>> temp_anchor_point;
         double len[4] = {0};
         int min_index = 0;
         vector<Point> anchor_temp;
@@ -1423,7 +1435,7 @@ void Detector::get_station_corner(Mat &img, vector<vector<Point>> four_station_c
                 // cout << poly[(min_index + i) % 4] << endl;
                 anchor_temp.push_back(poly[(min_index + i) % 4]);
             }
-            anchor_point.push_back(anchor_temp);
+            temp_anchor_point.push_back(anchor_temp);
         }
 
         RotatedRect resRec = minAreaRect(poly);
@@ -1432,6 +1444,7 @@ void Detector::get_station_corner(Mat &img, vector<vector<Point>> four_station_c
         float poly_area = contourArea(poly);
 
         if(poly_area / area > debug_ui.match_rate){
+            anchor_point = temp_anchor_point;
             debug_ui.match_rate = poly_area / area;
             debug_ui.poly = poly;
             debug_ui.area = area;

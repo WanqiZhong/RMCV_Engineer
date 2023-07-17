@@ -69,8 +69,10 @@ class Detector
 
         int min_corner_index;
         vector<Point> station_contours;
+        vector<Point> all_contours;
         vector<Point> square_contour;
         vector<Point> anchor_contour;
+        vector<vector<Point>> valid_contour; // 符合标志物大小的完整轮廓
         double min_corner_rec;//最小面积的角点的外接矩形面积
         int corner_cnt = 0;
         Mat thresh;
@@ -133,7 +135,7 @@ class Detector
         /* ExchangeSite  */
         void find_site_corner(Mat &img);
         void get_station_side(Mat &img);
-        void get_station_corner(Mat &img, vector<vector<Point>> four_station_contours, DebugUI &debug_ui);
+        void get_station_corner(Mat &img, vector<Point> four_station_contours, DebugUI &debug_ui);
         void draw_debug_ui(Mat &img, DebugUI &debug_ui);
 
 
