@@ -135,7 +135,7 @@ class Detector
         /* ExchangeSite  */
         void find_site_corner(Mat &img);
         void get_station_side(Mat &img);
-        void get_station_corner(Mat &img, vector<Point> four_station_contours, DebugUI &debug_ui);
+        void get_station_corner(Mat &img, vector<Point> four_station_contours, DebugUI &debug_ui, int index);
         void draw_debug_ui(Mat &img, DebugUI &debug_ui);
 
 

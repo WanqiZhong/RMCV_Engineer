@@ -105,7 +105,7 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     frame_rate = camera.at("frame_rate").as_integer();
     frame_height = camera.at("frame_height").as_integer();
     frame_width = camera.at("frame_width").as_integer();
-    codec =  cv::VideoWriter::fourcc('m', 'p', '4', 'v');
+    codec =  cv::VideoWriter::fourcc('M','J','P','G');
 
     exposure_time_mine = camera.at("exposure_time_mine").as_floating();
     exposure_time_exchangesite = camera.at("exposure_time_exchangesite").as_floating();
