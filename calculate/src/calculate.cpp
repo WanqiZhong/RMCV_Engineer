@@ -33,14 +33,32 @@ void Calculator::Calculate_Run()
                 angle_msg.is_valid = false;
                 if(!msg.goal.empty()){
                     for(int i = 0; i < msg.goal[0].size(); ++i){
-                    angle_msg.anchor_x[i] = int(anchor_point[0][i].x);
-                    angle_msg.anchor_y[i] = int(anchor_point[0][i].y);
-                    logger.info("anchor_point_{}:[{},{}]",i,anchor_point[0][i].x,anchor_point[0][i].y);
+                        angle_msg.anchor_x[i] = int(anchor_point[0][i].x);
+                        angle_msg.anchor_y[i] = int(anchor_point[0][i].y);
+                        logger.info("anchor_point_{}:[{},{}]",i,anchor_point[0][i].x,anchor_point[0][i].y);
                     }
                 }
                 angle_pub.push(angle_msg);
                 logger.warn("No anchor_point, can't solve pnp.");
                 continue;
+            }else{
+                bool unsafe_flag = false;
+                for(int i = 0; i < msg.goal[0].size(); ++i){
+                    if(anchor_point[0][i].x < 5 || anchor_point[0][i].x > param.frame_width - 5 || anchor_point[0][i].y < 5 || anchor_point[0][i].y > param.frame_height - 5 ){
+                        anchor_point[0][i].x = 0;
+                        anchor_point[0][i].y = 0;               
+                        unsafe_flag = true;
+                    }
+                    angle_msg.anchor_x[i] = int(anchor_point[0][i].x);
+                    angle_msg.anchor_y[i] = int(anchor_point[0][i].y);
+                    logger.info("anchor_point_{}:[{},{}]",i,anchor_point[0][i].x,anchor_point[0][i].y);
+                }
+                if(unsafe_flag){
+                    angle_msg.is_valid = false;
+                    angle_pub.push(angle_msg);
+                    logger.warn("No anchor_point, can't solve pnp.");
+                    continue;
+                }
             }
             logger.info("Reiceve anchor_point:[{},{}],[{},{}],[{},{}],[{},{}]",anchor_point[0][0].x, \
             anchor_point[0][0].y,anchor_point[0][1].x,anchor_point[0][1].y,anchor_point[0][2].x,anchor_point[0][2].y, \
