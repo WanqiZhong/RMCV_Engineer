@@ -14,8 +14,8 @@ recv_id = 0x002
 [sensor.camera]
 serial_number = ""
 exposure_time_mine = 200.0
-exposure_time_exchangesite = 30.0
-frame_rate = 30
+exposure_time_exchangesite = 8.0
+frame_rate = 60
 frame_width = 1280
 frame_height = 720
 operator_cam_index = 0
@@ -28,9 +28,9 @@ view = 0
 camp = 1
 
 [visual.transform]
-tran_tvecx = 133.0
-tran_tvecy = 13.0
-tran_tvecz = 50.0
+tran_tvecx = 173.0
+tran_tvecy = 38.0
+tran_tvecz = 40.0
 bias_tevcx = 0.0
 bias_tevcy = 0.0
 bias_tevcz = -25.0

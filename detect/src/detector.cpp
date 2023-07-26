@@ -277,13 +277,14 @@ void Detector::SilverMineDetect_Run(Mat &img)
 
 
 void Detector::ExchangeSite_Run(Mat &img) {
+    all_contours.clear();
     station_contours.clear();
     square_contour.clear();
     anchor_point.clear();
     anchor_contour.clear();
     valid_contour.clear();
     find_site_corner(img);
-    if (station_contours.size() == 0)
+    if (all_contours.size() == 0)
     {
         logger.warn("ExchangeSite_Run can't find normal corner");
     }
@@ -1238,9 +1239,12 @@ void Detector::find_site_corner(Mat &img)
     // 图像预处理，得到角点
     cvtColor(img, output, COLOR_BGR2HSV);
     if (param.camp == 0)
-        inRange(output, Scalar(0, 0, 150), Scalar(255, 255, 255), output); // red
-    else
-        inRange(output, Scalar(78, 72, 147), Scalar(122, 255, 255), output); // blue
+        inRange(output, Scalar(0, 0, 100), Scalar(180, 255, 255), output); // red
+    else{
+        logger.warn("camp is not 0");
+        inRange(output, Scalar(0, 0, 100), Scalar(180, 255, 255), output); // red
+    }
+        // inRange(output, Scalar(78, 72, 147), Scalar(122, 255, 255), output); // blue
 
     // Mat kernel_middle = getStructuringElement(MORPH_RECT, Size(5, 5));
     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
@@ -1283,8 +1287,8 @@ void Detector::find_site_corner(Mat &img)
                 min_corner_index = i;
             }
             corner_cnt++;
-            putText(img, "area:"+to_string(contourArea(contours[i])), contours[i][0], FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2, 5);
-            putText(img, "rate:"+to_string(contourArea(contours[i]) / area), Point(contours[i][0].x, contours[i][0].y + 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2, 5);
+            // putText(img, "area:"+to_string(contourArea(contours[i])), contours[i][0], FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2, 5);
+            // putText(img, "rate:"+to_string(contourArea(contours[i]) / area), Point(contours[i][0].x, contours[i][0].y + 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2, 5);
             // cout << "area:" << area << endl;
             // cout << "contour/rec rate:" << contourArea(contours[i]) / area << endl;
             // Point2f p[4];
@@ -1316,31 +1320,41 @@ void Detector::find_site_corner(Mat &img)
 void Detector::get_station_side(Mat &img)
 {
     DebugUI debug_ui;
+    debug_ui.right_flag = false;
+    debug_ui.area = 0;
+    debug_ui.match_rate = 0;
+    debug_ui.min_index = 0;
+    debug_ui.small_square_point.clear();
+    debug_ui.small_square_area.clear();
+    debug_ui.poly.clear();
+
     vector<Point> hull;
     vector<Point> poly;
     convexHull(Mat(all_contours), hull, false);
     approxPolyDP(hull, poly, 25, true);
-    polylines(img, poly, true, Scalar(0, 0, 0), 2, 8, 0);
+    polylines(img, poly, true, Scalar(255, 255, 255), 2, 8, 0);
+    logger.info("corner_cnt:{}", corner_cnt);
     if (corner_cnt == 4){
         for(int i = 0; i < valid_contour.size(); ++i){
             for (int j = 0; j < valid_contour[i].size(); ++j){
                 station_contours.push_back(valid_contour[i][j]);
             }
         }
-        get_station_corner(img, station_contours, debug_ui);
+        get_station_corner(img, station_contours, debug_ui, 0);
     }else if(corner_cnt < 4){
         logger.warn("Wrong number of poly:{}", corner_cnt);
             if(!anchor_contour.empty())
                 anchor_point.push_back(anchor_contour);
     }else if(corner_cnt > 4){
+        int index = 0;
         // 对于大于4个的统计数，遍历所有四个点的组合
-        for (int i = 0; i < valid_contour.size() - 4; i++)
+        for (int i = 0; i < valid_contour.size(); i++)
         {
-            for (int j = i + 1; j < valid_contour.size() - 3; j++)
+            for (int j = i + 1; j < valid_contour.size(); j++)
             {
-                for (int k = j + 1; k < valid_contour.size() - 2; k++)
+                for (int k = j + 1; k < valid_contour.size(); k++)
                 {
-                    for (int l = k + 1; l < valid_contour.size() - 1; l++)
+                    for (int l = k + 1; l < valid_contour.size() ; l++)
                     {
                         vector<vector<Point>> temp;
                         temp.push_back(valid_contour[i]);
@@ -1353,7 +1367,8 @@ void Detector::get_station_side(Mat &img)
                                 temp_station_contours.push_back(temp[i][j]);
                             }
                         }
-                        get_station_corner(img, temp_station_contours, debug_ui);
+                        Mat canvas = img.clone();
+                        get_station_corner(canvas, temp_station_contours, debug_ui, index++);
                     }
                 }
             }
@@ -1367,9 +1382,11 @@ void Detector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
             putText(img, "area:"+to_string(debug_ui.small_square_area[i]), debug_ui.small_square_point[i], FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
             cv::circle(img, debug_ui.small_square_point[i], 5, cv::Scalar(0, 255, 255), 5);
         }
-        cv::circle(img, debug_ui.poly[debug_ui.min_index], 5, cv::Scalar(255, 0, 255), 5);
-        polylines(img, debug_ui.poly, true, Scalar(0, 255, 0), 2, 8, 0);
-        putText(img, "poly_area:"+to_string(contourArea(debug_ui.poly)), Point(0, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        if(!debug_ui.poly.empty()){
+            cv::circle(img, debug_ui.poly[debug_ui.min_index], 5, cv::Scalar(255, 0, 255), 5);
+            polylines(img, debug_ui.poly, true, Scalar(0, 255, 0), 2, 8, 0);
+            putText(img, "poly_area:"+to_string(contourArea(debug_ui.poly)), Point(0, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        }
         putText(img, "area:"+to_string(debug_ui.area), Point(0, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
         putText(img, "rate:"+to_string(debug_ui.match_rate), Point(0, 150), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
         if(debug_ui.right_flag){
@@ -1379,7 +1396,7 @@ void Detector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
         }
 }
 
-void Detector::get_station_corner(Mat &img, vector<Point> four_station_contours, DebugUI &debug_ui){
+void Detector::get_station_corner(Mat &img, vector<Point> four_station_contours, DebugUI &debug_ui, int index){
         
         vector<vector<Point>> temp_anchor_point;
         double len[4] = {0};
@@ -1442,8 +1459,18 @@ void Detector::get_station_corner(Mat &img, vector<Point> four_station_contours,
         float area = resRec.size.width * resRec.size.height;
         // get poly area
         float poly_area = contourArea(poly);
+        polylines(img, poly, true, Scalar(255, 0, 0), 2, 8, 0);
+        putText(img, "match_rate:"+to_string(poly_area / area), poly[min_index] , FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 5);
+        cv::Point2f vertices[4];
+        resRec.points(vertices);
+        for (int i = 0; i < 4; i++)
+        {
+            line(img, vertices[i], vertices[(i + 1) % 4], Scalar(255, 0, 0));
+        }
+        writeImageRaw(index, img);
 
         if(poly_area / area > debug_ui.match_rate){
+            logger.warn("match rate:{}", poly_area / area);
             anchor_point = temp_anchor_point;
             debug_ui.match_rate = poly_area / area;
             debug_ui.poly = poly;
@@ -1460,7 +1487,7 @@ void Detector::get_station_corner(Mat &img, vector<Point> four_station_contours,
                     debug_ui.small_square_point.push_back(contours[i][0]);
                 }
             }
-            if(debug_ui.match_rate < 0.7){
+            if(debug_ui.match_rate < 0.65){
                 anchor_point.clear();
                 debug_ui.right_flag = false;
             }else{

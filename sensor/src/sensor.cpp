@@ -32,6 +32,7 @@ void Sensor::Sensor_Run() {
         cap.set(CAP_PROP_FRAME_WIDTH, param.frame_width);
         cap.set(CAP_PROP_FRAME_HEIGHT, param.frame_height);
         cap_map.insert({num, cap});
+        logger.info("Success set cam_{}", num);
     }
 
     initVideoRaw();
@@ -45,11 +46,11 @@ void Sensor::Sensor_Run() {
         logger.info("Vision Online!");
         // Pop electric control data
         try {
-            ecu_data_try = receive_sub.try_pop();
-            if (ecu_data_try.first == true) {
-                ecu_data = ecu_data_try.second;
-                logger.info("camp:{} visual_flag:{} view:{} mode:{}",ecu_data.camp, ecu_data.visual_flag, ecu_data.view, ecu_data.mode);
-            } else {
+            // ecu_data_try = receive_sub.try_pop();
+            // if (ecu_data_try.first == true) {
+            //     ecu_data = ecu_data_try.second;
+            //     logger.info("camp:{} visual_flag:{} view:{} mode:{}",ecu_data.camp, ecu_data.visual_flag, ecu_data.view, ecu_data.mode);
+            // } else {
                 ecu_data.view = param.operator_cam_index;
                 ecu_data.mode = 2;
                 ecu_data.visual_flag = 1;
@@ -59,7 +60,7 @@ void Sensor::Sensor_Run() {
                 else{
                     ecu_data.camp = param.camp;
                 }
-            }
+            
         } catch (exception e) {
             logger.warn("ECU_DATA reiceve error!");
         }
