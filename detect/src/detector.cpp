@@ -1528,3 +1528,4 @@ void Detector::writeImageRaw(int index, Mat& img){
         imwrite(param.get_log_path(num, param.shot_prefix, index) + ".jpg", img);
     }
 }
+

@@ -229,3 +229,21 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
     }
 }
 
+void Sitedetector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
+    for(int i = 0; i < debug_ui.small_square_point.size(); ++i){
+        putText(img, "area:"+to_string(debug_ui.small_square_area[i]), debug_ui.small_square_point[i], FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
+        cv::circle(img, debug_ui.small_square_point[i], 5, cv::Scalar(0, 255, 255), 5);
+    }
+    if(!debug_ui.poly.empty()){
+        cv::circle(img, debug_ui.poly[debug_ui.min_index], 5, cv::Scalar(255, 0, 255), 5);
+        polylines(img, debug_ui.poly, true, Scalar(0, 255, 0), 2, 8, 0);
+        putText(img, "poly_area:"+to_string(contourArea(debug_ui.poly)), Point(0, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+    }
+    putText(img, "area:"+to_string(debug_ui.area), Point(0, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+    putText(img, "rate:"+to_string(debug_ui.match_rate), Point(0, 150), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+    if(debug_ui.right_flag){
+        putText(img, "Right!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 255, 0), 2, 5);
+    }else{
+        putText(img, "Wrong!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255), 2, 5);
+    }
+}

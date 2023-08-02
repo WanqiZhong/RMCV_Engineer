@@ -1,5 +1,6 @@
 #include "cstdlib"
-#include "detector.hpp"
+//#include "detector.hpp"
+#include "detectormanager.hpp"
 #include "args.hpp"
 #include "umt.hpp"
 #include "log.hpp"
@@ -22,24 +23,23 @@ int main(int argc, char **argv)
     if(argc>=2)
         param.set_run_mode((MODE)atoi(argv[1]));
 
-    BaseCap *baseCap;
+    shared_ptr<BaseCap> Basecap;
     if(param.image_log){
         logger.critical("image read mode");
-        baseCap = new Video();
+        Basecap = make_shared<Video>();
+    }else{
+        Basecap = make_shared<Sensor>();
     }
-    else{
-        baseCap = new Sensor();
-    }
-    baseCap->Run();
+    Basecap->Run();
 
-    Detector detect;
+    Detectormanager detect;
     detect.Run();
     Calculator calculate;
     calculate.Run();
     Bridge bridge;
     bridge.Run();
 
-    baseCap->Join();
+    Basecap->Join();
     detect.Join();
     calculate.Join();
     bridge.Join();
