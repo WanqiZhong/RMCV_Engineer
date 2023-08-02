@@ -10,15 +10,16 @@ namespace armor
 {
     struct Armor // 代表一个装甲板
     {
-        cv::Rect_<float> rect;
-        cv::Point2f pts[5];
-        float conf;
-        int color;
-        int type;
+        cv::Rect_<float> rect = cv::Rect_<float>(0, 0, 0, 0);
+        cv::Point2f pts[5] = {};
+        float conf=0.;
+        int color=0;
+        int type=0;
+        int t_size=0; //1 for hero or balance
     };
 }
 
-namespace ml // machine learning
+namespace spl // machine learning
 {
     struct OutLayer
     {
@@ -27,8 +28,7 @@ namespace ml // machine learning
         int num_anchor;
         int num_out;
     };
-} // namespace ml
-
+} // namespace spl
 enum MODE // 运行模式
 {
     GoldMode, // 0

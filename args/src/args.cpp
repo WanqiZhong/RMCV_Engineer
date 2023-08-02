@@ -1,5 +1,5 @@
 #include "args.hpp"
-
+#include "matrix_utils.hpp"
 args::Args param(ROOT "config/config.toml", ROOT "config/local-config.toml", ROOT "config/local-config.default.toml");
 
 namespace args
@@ -48,6 +48,7 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     }
     pthread_rwlock_init(&rwlock_, NULL);
 
+
     // Detector
     auto &detector = config.at("detector");
     detector_args.init(detector);
@@ -64,6 +65,11 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     }
 
     auto robot_constants = toml::parse(constants_path);
+
+    //Camera
+    auto &camrea = robot_constants.at("camera");
+    toml_to_matrix(camrea.at("F"), F);
+    toml_to_matrix(camrea.at("C"), C);
 
     // Visual
     auto &visual = robot_constants.at("visual");
@@ -197,7 +203,11 @@ void DetectorArgs::init(const toml::value &config)
 {
     auto &exchangesite = config.at("exchangesite");
     auto &mine = config.at("mine");
+    auto &armor = config.at("armor");
+    auto &wind = config.at("wind");
 
+    path2model_am = std::string(ROOT) + std::string(armor.at("path").as_string());
+    path2model_wm = std::string(ROOT) + std::string(wind.at("path").as_string());
     path2model_exchangesite =std::string(ROOT) + std::string(exchangesite.at("path").as_string());
     path2model_mine = std::string(ROOT) + std::string(mine.at("path").as_string());
 }

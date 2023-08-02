@@ -12,6 +12,8 @@
 #include <set>
 #include <filesystem>
 #include <opencv2/opencv.hpp>
+#include <Eigen/Dense>
+#include <Eigen/Core>
 
 
 namespace fs = std::filesystem;
@@ -38,6 +40,11 @@ namespace args
         // Path
         std::string path2model_mine; // Mine
         std::string path2model_exchangesite; // ExchangeSite
+        std::string path2model_am; // 装甲板识别的模块文件名[无拓展]
+        std::string path2model_wm; // 风车识别模块文件名[无拓展]
+
+        // Thresh
+        float nms_thresh[2], conf_thresh[2]; // 0 for armor, 1 for wind
         friend class Args;
     };
 
@@ -49,6 +56,9 @@ namespace args
         toml::value config;
         toml::value local_config;
 
+        // ============= Camrea Config ===============
+        Eigen::Matrix<double, 3, 3> F;  // 内参矩阵
+        Eigen::Matrix<double, 1, 5> C;  // 畸变矩阵
 
         // ============== Visual =====================
         int visual_status;

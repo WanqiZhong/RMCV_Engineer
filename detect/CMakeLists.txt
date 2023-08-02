@@ -10,6 +10,10 @@ set(link utils ${link})
 find_package(Threads REQUIRED)
 set(link Threads::Threads ${link})
 
+find_package(OpenVINO REQUIRED)
+set(link openvino::runtime ${link})
+set(include ${InferenceEngine_INCLUDE_DIRS} ${include})
+set(include ${ngraph_INCLUDE_DIRS} ${include})
 set(link data ${link})
 set(link args ${link})
 

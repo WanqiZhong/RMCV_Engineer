@@ -6,6 +6,16 @@
 # Detector
 [detector]
 
+[detector.armor]
+path = "models/armor/armor" # path to model (without ext name)
+nms_thresh = 0.7
+conf_thresh = 0.7
+
+[detector.wind]
+path = "models/wind"
+nms_thresh = 0.7
+conf_thresh = 0.7
+
 [detector.mine]
 path = "models/v8/ " # path to model (without ext name)
 nms_thresh = 0.7

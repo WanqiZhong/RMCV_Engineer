@@ -46,7 +46,7 @@ void Calculator::Calculate_Run()
                 for(int i = 0; i < msg.goal[0].size(); ++i){
                     if(anchor_point[0][i].x < 5 || anchor_point[0][i].x > param.frame_width - 5 || anchor_point[0][i].y < 5 || anchor_point[0][i].y > param.frame_height - 5 ){
                         anchor_point[0][i].x = 0;
-                        anchor_point[0][i].y = 0;               
+                        anchor_point[0][i].y = 0;
                         unsafe_flag = true;
                     }
                     angle_msg.anchor_x[i] = int(anchor_point[0][i].x);
@@ -70,7 +70,7 @@ void Calculator::Calculate_Run()
         }
         CalculatePnp();
         // if(param.visual_status == 1){
-        
+
         ANGLE_DATA_MSG angle_msg;
         angle_msg.is_valid = true;
         // change to float
@@ -86,7 +86,7 @@ void Calculator::Calculate_Run()
         angle_msg.y = float(position[1]);
         angle_msg.z = float(position[2]);
         last_angle_data_msg = angle_msg;
-        logger.warn("angle_msg: x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",angle_msg.x,angle_msg.y,angle_msg.z,\
+        logger.warn("angle_msg: is_valid:{}, x:{}, y:{}, z:{}, roll:{}, pitch:{}, yaw:{}",angle_msg.is_valid, angle_msg.x,angle_msg.y,angle_msg.z,\
         angle_msg.roll,angle_msg.pitch,angle_msg.yaw);
         last_angle_data_msg = angle_msg;
         angle_pub.push(angle_msg);
@@ -130,18 +130,18 @@ void Calculator::CalculateInit()
     //                                     0.0, 0.0, 1.0);
     // DistCoeffs = (Mat_<double>(1,5) << -0.22375498735597868, 0.28173237030830756, 0.0023061024316095753, -0.002034056774360411, -2.3013327557759515);
     // CameraMatrix = (Mat_<double>(3,3) << 590.057431, 0.000000, 628.940684,
-    //                                     0.000000, 590.227016, 358.945741, 
+    //                                     0.000000, 590.227016, 358.945741,
     //                                     0.000000, 0.000000, 1.000000);
     // DistCoeffs = (Mat_<double>(1,5) << 0.048251, -0.049567, -0.000578, -0.000505, 0.016714);
     //647.4766049532548, 0.0, 772.8141822832324], [0.0, 647.3988049681597, 367.0779491855369], [0.0, 0.0, 1.0
-    
-    CameraMatrix = (Mat_<double>(3,3) << 887.2491874026911, 0.0, 622.2122954082711, 
-                                         0.0, 888.0495172048629, 381.3741434010061, 
-                                         0.0, 0.0, 1.0);
+
+    CameraMatrix = (Mat_<double>(3,3) << 887.2491874026911, 0.0, 622.2122954082711,
+            0.0, 888.0495172048629, 381.3741434010061,
+            0.0, 0.0, 1.0);
     DistCoeffs = (Mat_<double>(1,5) << 0.05224656269520069, -0.06683298601863932, 0.0004439441777461764, 0.0012095725267511495, 0.026569798036020168);
-    
+
     // CameraMatrix = (Mat_<double>(3,3) << 648.4049021201001, 0.0, 772.7708597356725,
-    //                                     0.0, 647.954255791574, 367.27133843225334, 
+    //                                     0.0, 647.954255791574, 367.27133843225334,
     //                                     0.0, 0.0, 1.0);
     // DistCoeffs = (Mat_<double>(1,5) << -0.03900241043569671, 0.07901858897325609, 0.0012754337138536477, 0.0005857123595320316, -0.06278245602713038);
 }
@@ -161,10 +161,10 @@ void Calculator::CalculatePnp()
     //     Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
     // }
     // else if(param.get_run_mode() == ExchangeSiteMode){
-        Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,200));
-        Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,200));
-        Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,200));
-        Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,200));
+    Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,200));
+    Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,200));
+    Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,200));
+    Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,200));
     // }
     Mat rvec = Mat::zeros(3,1,CV_64FC1);
     Mat tvec = Mat::zeros(3,1,CV_64FC1);
@@ -177,13 +177,13 @@ void Calculator::CalculatePnp()
         for(int j = 0; j < anchor_point[i].size(); ++j){
             Mine2D.push_back(anchor_point[i][j]);
         }
-        
+
         solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec);
-        
+
         cv::cv2eigen(tvec, T);
         logger.info("tvec x:{}, y:{}, z:{}",T(0),T(1),T(2));
 
-        rvec = final_Rvec_rpy * rvec;
+        rvec = final_Rvec * rvec;
         Rodrigues(rvec, rotMat);
 
         cv::cv2eigen(rotMat, R);
@@ -191,8 +191,8 @@ void Calculator::CalculatePnp()
         Eigen::Vector3d eulerAngle = R.eulerAngles(2, 1, 0);  // R.eulerAngles(2:z, 1:y, 0:x)
         eulerAngle = eulerAngle / M_PI * 180.0;
         // logger.info("Eigen库 roll:{} pitch:{} yaw:{}",eulerAngle[2],eulerAngle[1],eulerAngle[0]);
-    
-        
+
+
         /* ====================================  */
         eulerAngle2 = rotationMatrixToEulerAngles(R);
         eulerAngle2 = eulerAngle2 / M_PI * 180.0;
@@ -215,21 +215,21 @@ void Calculator::CalculatePnp()
         // logger.info("动轴ZYX(ypr) roll:{}, pitch:{}, yaw:{}",ypr(2),ypr(1),ypr(0));
 
         // position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
-        cvPosition = final_Rvec * tvec;
-        // cvPosition =  tvec;
+        // cvPosition = final_Rvec * tvec;
+        cvPosition =  final_Rvec * tvec;
         cv::cv2eigen(cvPosition, position);
         // logger.info("position x:{}, y:{}, z:{}",position(0),position(1),position(2));
 
     }
-        // for(int i=0;i<5;i++)
-        // {
-        //     //Pc=R*Po+T
-        //     Eigen::Matrix<double,3,1> p0;
-        //     p0<<pw_result[i][0],pw_result[i][1],pw_result[i][2];
-        //     pb.push_back( pc_to_pb(R*p0+T) );
-        // }
-        // pb.push_back( pc_to_pb(T) );
-        // return pb;
+    // for(int i=0;i<5;i++)
+    // {
+    //     //Pc=R*Po+T
+    //     Eigen::Matrix<double,3,1> p0;
+    //     p0<<pw_result[i][0],pw_result[i][1],pw_result[i][2];
+    //     pb.push_back( pc_to_pb(R*p0+T) );
+    // }
+    // pb.push_back( pc_to_pb(T) );
+    // return pb;
 }
 
 

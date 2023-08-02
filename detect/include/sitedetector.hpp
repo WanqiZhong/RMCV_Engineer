@@ -47,6 +47,7 @@ class Sitedetector : public Basedetector
         /* 分进程 */
         void find_corner(Mat &img); // 寻找到L形和正方形角点
         void get_anchor(Mat &img, const vector<Point>& four_station_contours, DebugUI &debug_ui, int index);
+        void find_anchor(Mat &img);
 
         Mat thresh_output;
         vector<Point> station_contours;
@@ -60,6 +61,6 @@ class Sitedetector : public Basedetector
         int corner_cnt = 0;
         Mat thresh;
 
-        void find_anchor(Mat &img);
+
 };
 #endif

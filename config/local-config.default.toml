@@ -2,7 +2,7 @@
 run_mode = "EXCHANGE_SITE_MODE" # default run mode
 
 [predictor]
-constants = "engineer.toml" # Predictor相关常数文件
+constants = "engineer_arm.toml" # Predictor相关常数文件
 
 # Debug
 [debug]
