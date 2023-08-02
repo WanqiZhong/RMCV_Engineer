@@ -215,8 +215,8 @@ void Calculator::CalculatePnp()
         // logger.info("动轴ZYX(ypr) roll:{}, pitch:{}, yaw:{}",ypr(2),ypr(1),ypr(0));
 
         // position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
-        cvPosition = final_Rvec * tvec;
-        // cvPosition =  tvec;
+        // cvPosition = final_Rvec * tvec;
+        cvPosition =  tvec;
         cv::cv2eigen(cvPosition, position);
         // logger.info("position x:{}, y:{}, z:{}",position(0),position(1),position(2));
 
