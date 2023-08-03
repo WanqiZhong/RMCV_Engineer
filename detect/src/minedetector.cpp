@@ -136,7 +136,7 @@ void Minedetector::get_main_corner_withnet(Mat& img, Mat &canvas, vector<Point> 
     double area_ratio_thres = 0.6;
     vector<vector<Point>> contours;
     cvtColor(img, gray_img, COLOR_BGR2GRAY);
-    threshold(gray_img, gray_img, 130, 255, THRESH_BINARY);
+    threshold(gray_img, gray_img, 130, 255, THRESH_BINARY); // >130 -> White     < 130 -> black  (higher threshold, more black) 
     threshold(gray_img, gray_img, 0, 255, THRESH_BINARY_INV);
     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
     // 膨胀
@@ -163,7 +163,7 @@ void Minedetector::get_main_corner_withnet(Mat& img, Mat &canvas, vector<Point> 
                 if(ratio > 1 && ratio != 0){
                     ratio = 1 / ratio;
                 }
-                if(ratio < ratio_thres || ratio == 1 || area_ratio < ratio_thres){
+                if(ratio < ratio_thres || ratio == 1 || area_ratio < area_ratio_thres){
                     continue;
                 }
                 Mat contour_binary = Mat::zeros(img.size(), CV_8UC1);
