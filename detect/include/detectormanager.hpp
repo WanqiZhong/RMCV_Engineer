@@ -29,7 +29,7 @@ class Detectormanager
         shared_ptr<Basedetector> detector;
         Logger logger = Logger("Detectormanager");
         thread Detector_thread;
-        MODE last_mode = GoldMode;
+        MODE last_mode = Unknown;
 
     public:
         Detectormanager()= default;

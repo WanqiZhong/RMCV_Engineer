@@ -22,15 +22,7 @@
 using namespace std;
 using namespace cv;
 
-typedef struct _debugUI{
-    vector<Point> small_square_point;
-    vector<double> small_square_area;
-    vector<Point> poly;
-    float area;
-    float match_rate;
-    int min_index;
-    bool right_flag;
-}DebugUI;
+
 
 class Sitedetector : public Basedetector
 {

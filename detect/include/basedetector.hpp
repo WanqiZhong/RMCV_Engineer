@@ -21,7 +21,15 @@
 using namespace std;
 using namespace cv;
 
-
+typedef struct _debugUI{
+    vector<Point> small_square_point;
+    vector<double> small_square_area;
+    vector<Point> poly;
+    float area;
+    float match_rate;
+    int min_index;
+    bool right_flag;
+}DebugUI;
 
 class Basedetector
 {
@@ -29,9 +37,9 @@ class Basedetector
         map<int, VideoWriter> detector_writer_map;
     int frame_index = 0;
 
-protected:
-    vector<vector<Point>> anchor_point;
-public:
+    protected:
+        vector<vector<Point>> anchor_point;
+    public:
         thread Detector_thread;
         Logger logger = Logger("Detector");
 

@@ -1,4 +1,7 @@
 #include "detectormanager.hpp"
+#include "sitedetector.hpp"
+#include "minenetdetector.hpp"
+#include "minedetector.hpp"
 
 void Detectormanager::Run()
 {
@@ -33,20 +36,16 @@ void Detectormanager::Manager_Run()
                         detector = make_shared<Sitedetector>();
                         break;
                     case GoldMode:
+                        detector = make_shared<Minenetdetector>(param.detector_args.path2model_am, 0, 0);
                         break;
-                    case SilverMode:
-                        break;
-                    case WaitMode:
-                        break;
-                    case HALT:
-                        break;
-                    case Unknown:
+                    default:
+                        detector = make_shared<Minedetector>();
                         break;
                 }
             }
             detector->clearAnchorPoint();
             detector->Detector_Run(img);
-            anchor_pub.push(MINE_POSITION_MSG{.goal=detector->getAnchorPoint()});
+            // anchor_pub.push(MINE_POSITION_MSG{.goal=detector->getAnchorPoint()});
         }
     }
 }

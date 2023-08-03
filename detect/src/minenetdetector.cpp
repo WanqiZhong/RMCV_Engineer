@@ -1,6 +1,115 @@
 #include "minenetdetector.hpp"
 
-void img2blob(cv::Mat &img, std::vector<float> &dst)
+
+void Minenetdetector::Detector_Run(Mat& img)
+{
+    Mat ori_img = img.clone();
+    bool receive_flag = 0;
+    int first_flag = 1;
+    umt::Subscriber<cv::Mat> sub("channel0");
+    umt::Publisher<MINE_POSITION_MSG> mine_pub("anchor_point_data");
+    std::vector<float> blob(640*640*3);
+
+    cv::Mat new_image = pad_image(img, cv::Size(640, 640));
+    cv::Mat canvas;
+    cv::resize(img, canvas, cv::Size(640, int(640*(float)(img.rows)/img.cols)));
+    img2blob(new_image, blob);
+    std::vector<armor::Armor> detections = detect(blob);
+    double scale = param.frame_width / 640.0;
+    for(int i = 0; i < detections.size(); ++i){
+        vector<cv::Point> pts;
+        if(detections[i].conf < 0.4) continue;
+        for(int j = 0; j < 4; ++j)
+        {
+            detections[i].pts[j].x =  detections[i].pts[j].x * scale;
+            detections[i].pts[j].y =  detections[i].pts[j].y * scale;
+            pts.push_back(detections[i].pts[j]);
+        }
+        anchor_point.push_back(pts);
+    }
+    logger.info("Armor_size: {}", detections.size());
+    draw(img, detections);
+    // get_corner_withnet(ori_img);
+    minedetector->Detector_Run_Withnet(ori_img, anchor_point);
+    
+}
+
+
+void Minenetdetector::get_mask(Mat &img, Mat &mask){
+    for(int i = 0; i < img.rows; ++i){
+        for(int j = 0; j < img.cols; ++j){
+            if(mask.at<uchar>(i,j) == 0){
+                img.at<Vec3b>(i,j)[0] = 255;
+                img.at<Vec3b>(i,j)[1] = 255;
+                img.at<Vec3b>(i,j)[2] = 255;
+            }
+        }
+    }
+}
+
+void Minenetdetector::get_corner_withnet(Mat &img)
+{
+    Mat mask = Mat::zeros(img.size(), CV_8UC1);
+    for(auto &mine_side:anchor_point){
+        int x = 0;
+        int y = 0;
+        int bound_small = 30;
+        int bound_big = 100;
+        int w = 100;
+        int h = 100;
+        for(int t = 0; t < mine_side.size(); t++){
+            switch(t){
+                case 0:
+                    first_points.push_back(mine_side[t]);
+                    x = max(mine_side[t].x - bound_small, 0);
+                    y = max(mine_side[t].y - bound_small, 0);
+                    for(int i = x; i < min(x + w, img.cols); i++){
+                        for(int j = y; j < min(y + h, img.rows); j++){
+                            mask.at<uchar>(i,j) = 255;
+                        }
+                    }
+                    break;
+                case 1:
+                    x = max( mine_side[t].x - bound_small, 0);
+                    y = max( mine_side[t].y - bound_big, 0);
+                    for(int i = x; i < min(x + w, img.cols); i++){
+                        for(int j = y; j < min(y + h, img.rows); j++){
+                            mask.at<uchar>(i,j) = 255;
+                        }
+                    }
+                    break;
+                case 2:
+                    third_points.push_back(mine_side[t]);
+                    x = max( mine_side[t].x - bound_big, 0);
+                    y = max( mine_side[t].y - bound_big, 0);
+                    for(int i = x; i < min(x + w, img.cols); i++){
+                        for(int j = y; j < min(y + h, img.rows); j++){
+                            mask.at<uchar>(i,j) = 255;
+                        }
+                    }
+                    break;
+                case 3:
+                    x = max( mine_side[t].x - bound_big, 0);
+                    y = max( mine_side[t].y - bound_small, 0);
+                    for(int i = x; i < min(x + w, img.cols); i++){
+                        for(int j = y; j < min(y + h, img.rows); j++){
+                            mask.at<uchar>(i,j) = 255;
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+    logger.info("get corner with net");
+    get_mask(img, mask);
+    imshow("mask", mask);
+    waitKey(1);
+}
+
+
+
+
+void Minenetdetector::img2blob(cv::Mat &img, std::vector<float> &dst)
 {
     // cv::dnn::blobFromImage(img, 1./255, img.size, cv::Scalar(), true);
     // return;
@@ -65,35 +174,6 @@ cv::Mat Minenetdetector::pad_image(cv::Mat image, cv::Size2i size)
     return new_image;
 }
 
-void Minenetdetector::Detector_Run(Mat& img)
-{
-    bool receive_flag = 0;
-    int first_flag = 1;
-    umt::Subscriber<cv::Mat> sub("channel0");
-    umt::Publisher<MINE_POSITION_MSG> mine_pub("anchor_point_data");
-    std::vector<float> blob(640*640*3);
-
-    cv::Mat new_image = pad_image(img, cv::Size(640, 640));
-    cv::Mat canvas;
-    vector<vector<cv::Point>> anchor_points;
-    cv::resize(img, canvas, cv::Size(640, int(640*(float)(img.rows)/img.cols)));
-    img2blob(new_image, blob);
-    std::vector<armor::Armor> detections = detect(blob);
-    double scale = param.frame_width / 640.0;
-    for(int i = 0; i < detections.size(); ++i){
-        vector<cv::Point> pts;
-        for(int j = 0; j < 4; ++j)
-        {
-            detections[i].pts[j].x =  detections[i].pts[j].x * scale;
-            detections[i].pts[j].y =  detections[i].pts[j].y * scale;
-            pts.push_back(detections[i].pts[j]);
-        }
-        anchor_points.push_back(pts);
-    }
-    logger.info("Armor_size: {}", detections.size());
-    draw(img, detections);
-}
-
 /**
  * @brief Construct a new Detector:: Detector object
  *
@@ -106,6 +186,7 @@ Minenetdetector::Minenetdetector(std::string name, int _type, int log_level):
         NUM_CLASSES(_type?2:2), NUM_COLORS(2),
         NMS_THRESH(param.detector_args.nms_thresh[_type]), BBOX_CONF_THRESH(param.detector_args.conf_thresh[_type])
 {
+    minedetector = std::make_unique<Minedetector>();
     logger.info("start_init_network");
 
     // load anchors

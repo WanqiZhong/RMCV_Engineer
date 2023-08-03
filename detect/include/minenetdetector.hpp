@@ -1,5 +1,5 @@
-#ifndef ENGCV_2023_DETECTOR_HPP_
-#define ENGCV_2023_DETECTOR_HPP_
+#ifndef ENGCV_2023_MINENETDETECTOR_HPP_
+#define ENGCV_2023_MINENETDETECTOR_HPP_
 
 #include <iostream>
 #include <vector>
@@ -14,6 +14,7 @@
 #include "args.hpp"
 #include "log.hpp"
 #include "basedetector.hpp"
+#include "minedetector.hpp"
 #include <fmt/format.h>
 #include <thread>
 #include <chrono>
@@ -25,6 +26,14 @@
 class Minenetdetector: public Basedetector
 {
 private:
+    double square_area = 0;
+    int offset = 100;
+    int valid_cnt = 0;
+    vector<Point> first_points = {};
+    vector<Point> third_points = {};
+    vector<vector<Point>> valid_contours = {};
+    vector<Point> all_contours = {};
+    vector<Point> square_contour = {};
     /* 金矿HSV参数 */
 
     vector<int> corner_number;
@@ -74,6 +83,7 @@ private:
     cv::Mat pad_image(cv::Mat image, cv::Size2i size);
 
 public:
+    std::unique_ptr<Minedetector> minedetector;
     thread Detector_thread;
     int infer_cnt = 0;
     double resize_tot=0, infer_tot=0, decode_tot=0, total_tot=0;
@@ -85,6 +95,10 @@ public:
 
     /* 主进程 */
     void Detector_Run(Mat& img);
+    void get_corner_withnet(Mat &img);
+    void img2blob(cv::Mat &img, std::vector<float> &dst);
+    void get_mask(Mat &img, Mat &mask);
+
 };
 
 #endif

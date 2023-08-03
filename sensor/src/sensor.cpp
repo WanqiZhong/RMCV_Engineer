@@ -52,7 +52,7 @@ void Sensor::Sensor_Run() {
             //     logger.info("camp:{} visual_flag:{} view:{} mode:{}",ecu_data.camp, ecu_data.visual_flag, ecu_data.view, ecu_data.mode);
             // } else {
                 ecu_data.view = param.operator_cam_index;
-                ecu_data.mode = 2;
+                ecu_data.mode = 0;
                 ecu_data.visual_flag = 1;
                 if(param.camp == -1){
                     ecu_data.camp = 0;
@@ -78,12 +78,9 @@ void Sensor::Sensor_Run() {
             setCamera(ecu_data.mode);
         }
 
-
         // Set camera index
         vision_cap = cap_map.at(param.vision_cam_index);
         operator_cap = cap_map.at(param.operator_cam_index);
-            
-
 
         if (!vision_cap.isOpened()) {
             logger.error("Vision Camera is not opened");
