@@ -45,16 +45,17 @@ void Minedetector::drawLine(Mat &img, //要标记直线的图像
 
 void Minedetector::get_corner_withnet(Mat &img)
 {
+    enhance_img(img);
     Mat canvas = img.clone();
     for(auto &mine_side:anchor_point){
         int x = 0;
         int y = 0;
         int x_max = 0;
         int y_max = 0;
-        int bound_small = 50;
-        int bound_big = 130;
-        int w = 180;
-        int h = 180;
+        int bound_small = 80;
+        int bound_big = 180;
+        int w = 300;
+        int h = 300;
         for(int t = 0; t < mine_side.size(); t++){
             Mat img_ori = img.clone();
             Mat mask = Mat::zeros(img.size(), CV_8UC1);
@@ -89,8 +90,8 @@ void Minedetector::get_corner_withnet(Mat &img)
                     break;
                 case 2:
                     third_points.push_back(mine_side[t]);
-                    x = max( mine_side[t].x - bound_big, 0);
-                    y = max( mine_side[t].y - bound_big, 0);
+                    x = max( mine_side[t].x - 120, 0);
+                    y = max( mine_side[t].y - 120, 0);
                     x_max = min(x + w, img.cols);
                     y_max = min(y + h, img.rows);
                     border_points.push_back(Point(x,y));
@@ -122,6 +123,8 @@ void Minedetector::get_corner_withnet(Mat &img)
             get_main_corner_withnet(img_ori, canvas, border_points);
         }
     }
+     imshow("aft_img", canvas);
+    waitKey(1);
     
 }
 
@@ -145,14 +148,15 @@ void Minedetector::get_main_corner_withnet(Mat& img, Mat &canvas, vector<Point> 
     while(corner_cnt==0 && ratio_thres >= 0.3 && area_ratio_thres >= 0.3){
         logger.info("corner_cnt:{}", contours.size());
         for(auto& contour: contours){
-            if(contourArea(contour) > 1000 && contourArea(contour) < 6000){
+            if(contourArea(contour) > 800 && contourArea(contour) < 6000){
                 RotatedRect con_rect = minAreaRect(contour);       
                 double ratio = con_rect.size.width / con_rect.size.height;
                 double area_ratio = contourArea(contour) / (con_rect.size.width * con_rect.size.height);
                 putText(canvas, "area_ratio:"+to_string(area_ratio), con_rect.center, FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 5);
+                putText(canvas, "aera:"+to_string(contourArea(contour)), con_rect.center, FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 5);
                 logger.info("ratio:{}", ratio);
                 logger.info("area_ratio:{}", area_ratio);
-                if(con_rect.size.width * con_rect.size.height < 2000 || con_rect.size.height == 0){
+                if(con_rect.size.width * con_rect.size.height < 1200 || con_rect.size.height == 0){
                     continue;
                 }
                 // RotatedRect con_rect = minAreaRect(contour);
@@ -172,7 +176,7 @@ void Minedetector::get_main_corner_withnet(Mat& img, Mat &canvas, vector<Point> 
                 waitKey(1);
 
                 vector<Vec4f> lines;
-                HoughLinesP(canny, lines, 1, CV_PI/180, 30, 5, 3);
+                HoughLinesP(canny, lines, 1, CV_PI/180, 20, 5, 3);
                 logger.info("lines size:{}", lines.size());
                 bool is_border = false;
                 for(auto& l: lines){
@@ -203,7 +207,7 @@ void Minedetector::get_main_corner_withnet(Mat& img, Mat &canvas, vector<Point> 
                 for(auto& l: lines){
                     line(canvas, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 2);
                 }
-                if(lines .size() < 2){
+                if(lines .size() < 1){
                     continue;
                 }
 
@@ -220,8 +224,6 @@ void Minedetector::get_main_corner_withnet(Mat& img, Mat &canvas, vector<Point> 
         ratio_thres -= 0.1;
         area_ratio_thres -= 0.1;
     }
-    imshow("aft_img", canvas);
-    waitKey(0);
 } 
 
 Point Minedetector::getTargetPoint(cv::Point pt_center, cv::Mat warpMatrix)
@@ -348,7 +350,7 @@ void Minedetector::enhance_img(Mat &img)
     cvtColor(img, img, COLOR_BGR2HSV);
     for(int i = 0; i < img.rows; i++){
         for(int j = 0; j < img.cols; j++){
-            img.at<Vec3b>(i, j)[2] = img.at<Vec3b>(i, j)[2] * 2 > 255 ? 255 : img.at<Vec3b>(i, j)[2] * 1.5;
+            img.at<Vec3b>(i, j)[2] = img.at<Vec3b>(i, j)[2] * 1.2 > 255 ? 255 : img.at<Vec3b>(i, j)[2] * 1.2;
         }
     }
     cvtColor(img, img, COLOR_HSV2BGR);
