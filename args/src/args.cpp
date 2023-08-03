@@ -98,6 +98,19 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     auto &changesite = traditional.at("changesite");
     gold_maxval = gold.at("gold_maxval").as_integer();
     gold_thresh = gold.at("gold_thresh").as_integer();
+    bound_small = gold.at("bound_small").as_integer();
+    bound_big = gold.at("bound_big").as_integer();
+    w = gold.at("w").as_integer();
+    h = gold.at("h").as_integer();
+    ratio_thres = gold.at("ratio_thres").as_floating();
+    area_ratio_thres = gold.at("area_ratio_thres").as_floating();
+    corner_thresh = gold.at("corner_thresh").as_integer();
+    ratio_thres_min = gold.at("ratio_thres_min").as_floating();
+    area_ratio_thres_min = gold.at("area_ratio_thres_min").as_floating();
+    corner_contour_area_min = gold.at("corner_contour_area_min").as_integer();
+    corner_contour_area_max = gold.at("corner_contour_area_max").as_integer();
+    corner_rec_area_max = gold.at("corner_rec_area_max").as_integer();
+    
     site_min_rate = changesite.at("site_min_rate").as_floating();
     site_max_rate = changesite.at("site_max_rate").as_floating();
     site_min_area = changesite.at("site_min_area").as_floating();

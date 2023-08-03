@@ -149,6 +149,20 @@ namespace args
         // ================= Traditional ======================
         int gold_thresh;
         int gold_maxval;
+
+        int bound_small;
+        int bound_big;
+        int w;
+        int h;
+        float ratio_thres;
+        float area_ratio_thres;
+        int corner_thresh;
+        float ratio_thres_min;
+        float area_ratio_thres_min;
+        int corner_contour_area_min;
+        int corner_contour_area_max;
+        int corner_rec_area_max;
+
         float site_min_rate;
         float site_max_rate;
         int site_min_area;
