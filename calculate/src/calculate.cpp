@@ -167,10 +167,10 @@ void Calculator::CalculatePnp()
     //     Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
     // }
     // else if(param.get_run_mode() == ExchangeSiteMode){
-    Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,200));
-    Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,200));
-    Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,200));
-    Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,200));
+    Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,0));
+    Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,0));
+    Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,0));
+    Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
     // }
     Mat rvec = Mat::zeros(3,1,CV_64FC1);
     Mat tvec = Mat::zeros(3,1,CV_64FC1);
@@ -184,19 +184,19 @@ void Calculator::CalculatePnp()
             Mine2D.push_back(anchor_point[i][j]);
         }
 
-        solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec,false,SOLVEPNP_IPPE);
+        solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec);
 
         cv::cv2eigen(tvec, T);
         logger.info("tvec x:{}, y:{}, z:{}",T(0),T(1),T(2));
 
         rvec = final_Rvec * rvec;
         Rodrigues(rvec, rotMat);
-
+        // rotMat = final_Rvec * rotMat;
         cv::cv2eigen(rotMat, R);
 
-        Eigen::Vector3d eulerAngle = R.eulerAngles(2, 1, 0);  // R.eulerAngles(2:z, 1:y, 0:x)
-        eulerAngle = eulerAngle / M_PI * 180.0;
-        // logger.info("Eigen库 roll:{} pitch:{} yaw:{}",eulerAngle[2],eulerAngle[1],eulerAngle[0]);
+        Eigen::Vector3d eulerAngle2 = R.eulerAngles(2, 1, 0);  // R.eulerAngles(2:z, 1:y, 0:x)
+        eulerAngle2 = eulerAngle2 / M_PI * 180.0;
+        logger.info("Eigen库 roll:{} pitch:{} yaw:{}",eulerAngle2[0],eulerAngle2[1],eulerAngle2[2]);
 
 
         /* ====================================  */
@@ -218,7 +218,7 @@ void Calculator::CalculatePnp()
         ypr(1) = p;
         ypr(2) = r;
         ypr = ypr / M_PI * 180.0;
-        // logger.info("动轴ZYX(ypr) roll:{}, pitch:{}, yaw:{}",ypr(2),ypr(1),ypr(0));
+        logger.info("动轴ZYX(ypr) roll:{}, pitch:{}, yaw:{}",ypr(2),ypr(1),ypr(0));
 
         // position =  final_R[view_type] * (final_Rvec * tvec + final_Tvec) * final_T[view_type];
         // cvPosition = final_Rvec * tvec;
@@ -237,7 +237,6 @@ void Calculator::CalculatePnp()
     // pb.push_back( pc_to_pb(T) );
     // return pb;
 }
-
 
 
 bool Calculator::isRotationMatirx(Eigen::Matrix3d R)
