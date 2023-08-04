@@ -1,5 +1,6 @@
 #include "detectormanager.hpp"
 #include "sitedetector.hpp"
+#include "sitedetectorpro.hpp"
 #include "minenetdetector.hpp"
 #include "minedetector.hpp"
 
@@ -33,7 +34,7 @@ void Detectormanager::Manager_Run()
                 switch (param.get_run_mode())
                 {
                     case ExchangeSiteMode:
-                        detector = make_shared<Sitedetector>();
+                        detector = make_shared<SitedetectorPro>();
                         break;
                     case GoldMode:
                         detector = make_shared<Minenetdetector>(param.detector_args.path2model_am, 0, 0);

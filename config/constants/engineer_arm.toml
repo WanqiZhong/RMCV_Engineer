@@ -67,10 +67,10 @@ corner_contour_area_max = 6000
 corner_rec_area_max = 1200
 
 [traditional.changesite]
-site_min_rate = 0.3
+site_min_rate = 0.25
 site_max_rate = 3.0
 site_min_area = 400.0
-site_max_area = 15000.0
+site_max_area = 20000.0
 site_area_rate = 0.7
 
 

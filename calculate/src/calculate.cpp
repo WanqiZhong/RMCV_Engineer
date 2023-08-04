@@ -167,10 +167,14 @@ void Calculator::CalculatePnp()
     //     Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
     // }
     // else if(param.get_run_mode() == ExchangeSiteMode){
-    Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,0));
-    Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,0));
-    Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,0));
-    Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
+    Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,200));
+    Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,200));
+    Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,200));
+    Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,200));
+     // Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,0));
+    // Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,0));
+    // Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,0));
+    // Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
     // }
     Mat rvec = Mat::zeros(3,1,CV_64FC1);
     Mat tvec = Mat::zeros(3,1,CV_64FC1);

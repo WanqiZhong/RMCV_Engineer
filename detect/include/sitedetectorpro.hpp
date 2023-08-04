@@ -37,8 +37,10 @@ class SitedetectorPro : public Basedetector
         void draw_debug_ui(Mat &img, DebugUI &debug_ui);
 
         /* 分进程 */
+        void find_four_corner(Mat &img);
         void find_corner(Mat &img); // 寻找到L形和正方形角点
-        void get_anchor(Mat &img, const vector<Point>& four_station_contours, DebugUI &debug_ui, int index);
+        void find_best_match(Mat &img, const vector<Point>& four_station_contours, const vector<vector<Point>>& four_station_contour, DebugUI &debug_ui, int index);
+        void get_anchor(Mat &img, DebugUI &debug_ui, int index);
         void find_anchor(Mat &img);
 
         Mat thresh_output;
