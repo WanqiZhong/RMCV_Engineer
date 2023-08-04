@@ -51,6 +51,20 @@ cali_pitch = 90.0
 [traditional.gold]
 gold_thresh = 70
 gold_maxval = 255
+#框选单角点ROI
+bound_small = 80
+bound_big = 180
+w = 300
+h = 300
+#黑色角点筛选
+ratio_thres = 0.6
+area_ratio_thres = 0.6
+corner_thresh = 130  # >130 -> White     < 130 -> black  (higher threshold, more black)
+ratio_thres_min = 0.3
+area_ratio_thres_min = 0.3
+corner_contour_area_min = 800
+corner_contour_area_max = 6000
+corner_rec_area_max = 1200
 
 [traditional.changesite]
 site_min_rate = 0.3
