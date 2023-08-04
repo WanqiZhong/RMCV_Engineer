@@ -194,9 +194,9 @@ void Calculator::CalculatePnp()
         // rotMat = final_Rvec * rotMat;
         cv::cv2eigen(rotMat, R);
 
-        Eigen::Vector3d eulerAngle2 = R.eulerAngles(2, 1, 0);  // R.eulerAngles(2:z, 1:y, 0:x)
-        eulerAngle2 = eulerAngle2 / M_PI * 180.0;
-        logger.info("Eigen库 roll:{} pitch:{} yaw:{}",eulerAngle2[0],eulerAngle2[1],eulerAngle2[2]);
+        // Eigen::Vector3d eulerAngle2 = R.eulerAngles(2, 1, 0);  // R.eulerAngles(2:z, 1:y, 0:x)
+        // eulerAngle2 = eulerAngle2 / M_PI * 180.0;
+        // logger.info("Eigen库 roll:{} pitch:{} yaw:{}",eulerAngle2[0],eulerAngle2[1],eulerAngle2[2]);
 
 
         /* ====================================  */

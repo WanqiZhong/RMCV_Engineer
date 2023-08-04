@@ -1,13 +1,14 @@
-#include "sitedetector.hpp"
+#include "sitedetectorpro.hpp"
 
-void Sitedetector::Detector_Run(Mat &img) {
+void SitedetectorPro::Detector_Run(Mat &img) {
     Mat ori_img = img.clone();
     all_contours.clear();
     station_contours.clear();
     square_contour.clear();
     anchor_contour.clear();
     valid_contour.clear();
-    find_corner(img);
+    find_four_corner(img);
+    // find_corner(img);
     if (all_contours.empty()){
         logger.warn("ExchangeSite_Run can't find normal corner");
     }else if (square_contour.empty()){
@@ -25,7 +26,7 @@ void Sitedetector::Detector_Run(Mat &img) {
 /// @brief find the L-shaped corner and the square corner of the exchange changesite
 /// @param img, the original picture
 /// @return void
-void Sitedetector::find_corner(Mat &img)
+void SitedetectorPro::find_four_corner(Mat &img)
 {
     vector<vector<Point>> corner_contours;
     vector<Vec4i> corner_hierarchy;
@@ -97,12 +98,86 @@ void Sitedetector::find_corner(Mat &img)
 
 
 
+/// @brief find the L-shaped corner and the square corner of the exchange changesite
+/// @param img, the original picture
+/// @return void
+void SitedetectorPro::find_corner(Mat &img)
+{
+    vector<vector<Point>> corner_contours;
+    vector<Vec4i> corner_hierarchy;
+    double min_corner_area = 10000; // 记录当前最小的面积
+    min_corner_index = 0; corner_cnt = 0;
+
+
+    cvtColor(img, thresh_output, COLOR_BGR2HSV);
+
+    if (param.camp == 0)
+        inRange(thresh_output, Scalar(0, 0, 100), Scalar(180, 255, 255), thresh_output); // red
+    else{
+        inRange(thresh_output, Scalar(0, 0, 100), Scalar(180, 255, 255), thresh_output); // red
+    }
+
+    imshow("[FIND_CORNER_AFT]", thresh_output);
+    findContours(thresh_output, corner_contours, corner_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+
+    for (int i = 0; i < corner_contours.size(); i++)
+    {
+        RotatedRect rec = minAreaRect(corner_contours[i]);
+        double rate = float(rec.size.width) / rec.size.height;
+        double area = float(rec.size.width) * rec.size.height;
+        drawContours(img, corner_contours, i, Scalar(0, 255, 0), 2, 8, corner_hierarchy, 0, Point());
+        putText(img, "rate:" + to_string(rate), corner_contours[i][0], FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
+        putText(img, "area:" + to_string(area), Point(corner_contours[i][0].x, corner_contours[i][0].y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
+        putText(img, "ratio:" + to_string(contourArea(corner_contours[i]) / area ), Point(corner_contours[i][0].x, corner_contours[i][0].y + 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
+
+        if (rate >= param.site_min_rate && rate <= param.site_max_rate && \
+            area >= param.site_min_area && area <= param.site_max_area && \
+            contourArea(corner_contours[i]) / area <= param.site_area_rate){
+
+            putText(img, "rate:" + to_string(rate), corner_contours[i][0], FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
+            putText(img, "area:" + to_string(area), Point(corner_contours[i][0].x, corner_contours[i][0].y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
+            putText(img, "ratio:" + to_string(contourArea(corner_contours[i]) / area ), Point(corner_contours[i][0].x, corner_contours[i][0].y + 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
+
+            for (const auto & j : corner_contours[i]){
+                all_contours.push_back(j);
+            }
+            valid_contour.push_back(corner_contours[i]);
+            anchor_contour.push_back(corner_contours[i][0]);
+
+            if (contourArea(corner_contours[i]) < min_corner_area)
+            {
+                min_corner_area = contourArea(corner_contours[i]);
+                min_corner_index = i;
+            }
+
+            corner_cnt++;
+        }
+    }
+
+    if (!corner_contours.empty()){
+        // 得到最小面积角点（标志角点）的面积
+        // 使用理论上正方形小角点的外接矩形面积应当小于最小角点（标志角点）的面积
+        min_corner_rec = contourArea(corner_contours[min_corner_index]);
+        // RotatedRect rec = minAreaRect(corner_contours[min_corner_index]);
+        // 提取右上角标志角点的一个点单独储存，用于后续按顺序输出角点座标
+        square_contour.push_back(corner_contours[min_corner_index][0]);
+        putText(img, "square:" + to_string(corner_contours[min_corner_index][0].x) + "," + to_string(corner_contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        putText(img, "min_aera:"+to_string(min_corner_rec), Point(0, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+    }
+
+    imshow("[FIND_CORNER]", img);
+    waitKey(1);
+
+}
+
+
+
 
 /// @brief get coordinates of exchange station
 /// @param img, the original picture
 /// @param corner_contour, points of corners' contours;
 /// @param square_corner_contour, points of square corner's contour;
-void Sitedetector::find_anchor(Mat &img)
+void SitedetectorPro::find_anchor(Mat &img)
 {
     DebugUI debug_ui;
     debug_ui.right_flag = false;
@@ -154,8 +229,7 @@ void Sitedetector::find_anchor(Mat &img)
 }
 
 
-
-void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contours, DebugUI &debug_ui, int index){
+void SitedetectorPro::get_anchor(Mat &img, const vector<Point>& four_station_contours, DebugUI &debug_ui, int index){
 
     vector<vector<Point>> temp_anchor_point;
     vector<double> distance = vector<double>(4, 0);
@@ -245,7 +319,7 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
     }
 }
 
-void Sitedetector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
+void SitedetectorPro::draw_debug_ui(Mat &img, DebugUI &debug_ui){
     for(int i = 0; i < debug_ui.small_square_point.size(); ++i){
         putText(img, "area:"+to_string(debug_ui.small_square_area[i]), debug_ui.small_square_point[i], FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
         cv::circle(img, debug_ui.small_square_point[i], 5, cv::Scalar(0, 255, 255), 5);
