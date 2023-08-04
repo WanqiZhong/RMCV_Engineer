@@ -45,7 +45,7 @@ void Detectormanager::Manager_Run()
             }
             detector->clearAnchorPoint();
             detector->Detector_Run(img);
-            // anchor_pub.push(MINE_POSITION_MSG{.goal=detector->getAnchorPoint()});
+            anchor_pub.push(MINE_POSITION_MSG{.goal=detector->getAnchorPoint()});
         }
     }
 }

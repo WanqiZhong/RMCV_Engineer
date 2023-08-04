@@ -31,6 +31,7 @@ void Minenetdetector::Detector_Run(Mat& img)
     draw(img, detections);
     // get_corner_withnet(ori_img);
     minedetector->Detector_Run_Withnet(ori_img, anchor_point);
+    this->anchor_point = minedetector->anchor_point;
     
 }
 

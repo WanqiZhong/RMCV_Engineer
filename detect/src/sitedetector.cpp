@@ -1,6 +1,9 @@
 #include "sitedetector.hpp"
 
 void Sitedetector::Detector_Run(Mat &img) {
+
+    umt::Subscriber<cv::Mat> sub("channel0");
+    umt::Publisher<MINE_POSITION_MSG> mine_sub("anchor_point_data");
     all_contours.clear();
     station_contours.clear();
     square_contour.clear();
@@ -13,6 +16,7 @@ void Sitedetector::Detector_Run(Mat &img) {
         logger.warn("ExchangeSite_Run can't find square corner");
     }else{
         find_anchor(img);
+        cv::imshow("debug_ui",img);
     }
     if(!anchor_point.empty()){
         reverse(anchor_point[0].begin(), anchor_point[0].end());
@@ -73,6 +77,7 @@ void Sitedetector::find_anchor(Mat &img)
         }
     }
     draw_debug_ui(img, debug_ui);
+
 }
 
 

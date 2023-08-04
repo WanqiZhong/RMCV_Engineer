@@ -38,8 +38,10 @@ class Basedetector
     int frame_index = 0;
 
     protected:
-        vector<vector<Point>> anchor_point;
+        
     public:
+        vector<vector<Point>> anchor_point;
+
         thread Detector_thread;
         Logger logger = Logger("Detector");
 
