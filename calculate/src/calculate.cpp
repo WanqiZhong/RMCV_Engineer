@@ -251,7 +251,7 @@ bool Calculator::isRotationMatirx(Eigen::Matrix3d R)
 
 Eigen::Vector3d Calculator::rotationMatrixToEulerAngles(Eigen::Matrix3d &R)
 {
-    assert(isRotationMatirx(R));
+    // assert(isRotationMatirx(R));
     double sy = sqrt(R(0,0) * R(0,0) + R(1,0) * R(1,0));
     bool singular = sy < 1e-6;
     double x, y, z;

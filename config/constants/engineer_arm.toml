@@ -52,19 +52,24 @@ cali_pitch = 90.0
 gold_thresh = 70
 gold_maxval = 255
 #框选单角点ROI
-bound_small = 80
-bound_big = 180
+bound_small = 100
+bound_big = 200
 w = 300
 h = 300
 #黑色角点筛选
 ratio_thres = 0.6
 area_ratio_thres = 0.6
-corner_thresh = 130  # >130 -> White     < 130 -> black  (higher threshold, more black)
+corner_thresh = 130  # >130-> White     < 130 -> black  (higher threshold, more black in real)
 ratio_thres_min = 0.3
 area_ratio_thres_min = 0.3
-corner_contour_area_min = 800
-corner_contour_area_max = 6000
-corner_rec_area_max = 1200
+corner_contour_area_min = 700
+corner_contour_area_max = 10000
+corner_rec_area_min = 800
+#凸包后筛选
+res_rate = 2.5 #外接矩形长宽比
+poly_area = 50000
+match_rate = 0.65 #poly面积与外接矩形面积之比
+
 
 [traditional.changesite]
 site_min_rate = 0.3

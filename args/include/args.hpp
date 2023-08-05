@@ -161,7 +161,10 @@ namespace args
         float area_ratio_thres_min;
         int corner_contour_area_min;
         int corner_contour_area_max;
-        int corner_rec_area_max;
+        int corner_rec_area_min;
+        float res_rate;
+        int poly_area;
+        float match_rate;
 
         float site_min_rate;
         float site_max_rate;

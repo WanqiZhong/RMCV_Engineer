@@ -109,7 +109,11 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     area_ratio_thres_min = gold.at("area_ratio_thres_min").as_floating();
     corner_contour_area_min = gold.at("corner_contour_area_min").as_integer();
     corner_contour_area_max = gold.at("corner_contour_area_max").as_integer();
-    corner_rec_area_max = gold.at("corner_rec_area_max").as_integer();
+    corner_rec_area_min = gold.at("corner_rec_area_min").as_integer();
+    res_rate = gold.at("res_rate").as_floating();
+    poly_area = gold.at("poly_area").as_integer();
+    match_rate = gold.at("match_rate").as_floating();
+
     
     site_min_rate = changesite.at("site_min_rate").as_floating();
     site_max_rate = changesite.at("site_max_rate").as_floating();

@@ -16,7 +16,7 @@ void Sitedetector::Detector_Run(Mat &img) {
         logger.warn("ExchangeSite_Run can't find square corner");
     }else{
         find_anchor(img);
-        cv::imshow("debug_ui",img);
+        
     }
     if(!anchor_point.empty()){
         reverse(anchor_point[0].begin(), anchor_point[0].end());
@@ -77,6 +77,7 @@ void Sitedetector::find_anchor(Mat &img)
         }
     }
     draw_debug_ui(img, debug_ui);
+    imshow("debug_ui",img);
 
 }
 

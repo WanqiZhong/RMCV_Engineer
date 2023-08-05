@@ -14,7 +14,6 @@
 #include "args.hpp"
 #include "log.hpp"
 #include "basedetector.hpp"
-#include "minedetector.hpp"
 #include <fmt/format.h>
 #include <thread>
 #include <chrono>
@@ -83,7 +82,10 @@ private:
     cv::Mat pad_image(cv::Mat image, cv::Size2i size);
 
 public:
-    std::unique_ptr<Minedetector> minedetector;
+    void Run();
+    void Join();
+
+    // std::unique_ptr<Minedetector> minedetector;
     thread Detector_thread;
     int infer_cnt = 0;
     double resize_tot=0, infer_tot=0, decode_tot=0, total_tot=0;
@@ -95,6 +97,8 @@ public:
 
     /* 主进程 */
     void Detector_Run(Mat& img);
+    void DetectorNet_Run();
+    // void Detector_Run();
     void get_corner_withnet(Mat &img);
     void img2blob(cv::Mat &img, std::vector<float> &dst);
     void get_mask(Mat &img, Mat &mask);

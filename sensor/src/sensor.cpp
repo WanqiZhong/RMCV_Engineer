@@ -43,7 +43,7 @@ void Sensor::Sensor_Run() {
 
     while (param.get_run_mode() != HALT)
     {
-        logger.info("Vision Online!");
+        // logger.info("Vision Online!");
         // Pop electric control data
         try {
             // ecu_data_try = receive_sub.try_pop();
@@ -52,7 +52,7 @@ void Sensor::Sensor_Run() {
             //     logger.info("camp:{} visual_flag:{} view:{} mode:{}",ecu_data.camp, ecu_data.visual_flag, ecu_data.view, ecu_data.mode);
             // } else {
                 ecu_data.view = param.operator_cam_index;
-                ecu_data.mode = 2;
+                ecu_data.mode = 0;
                 ecu_data.visual_flag = 1;
                 if(param.camp == -1){
                     ecu_data.camp = 0;
@@ -65,6 +65,8 @@ void Sensor::Sensor_Run() {
             logger.warn("ECU_DATA reiceve error!");
         }
 
+        // [DEBUG]
+        ecu_data.mode = 0;
         param.operator_cam_index = ecu_data.view % 4;
         param.camp = ecu_data.camp;
         param.visual_status = ecu_data.visual_flag;

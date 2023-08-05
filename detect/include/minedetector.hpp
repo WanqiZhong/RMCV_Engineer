@@ -22,6 +22,11 @@
 #include <cstring>
 #include <ie/inference_engine.hpp>
 
+typedef struct _CornerContour{
+    vector<Point> contour;
+    double distance;
+}CornerContour;
+
 class Minedetector: public Basedetector
 {
     
@@ -44,7 +49,6 @@ public:
     vector<Point> all_contours = {};
     vector<Point> square_contour = {};
     void Detector_Run_Withnet(Mat &img, vector<vector<Point>>& anchor_point);
-
     void drawLine(Mat &img, vector<Vec2f> lines, double rows, double cols, Scalar scalar, int n);
 
 private:
@@ -57,11 +61,13 @@ private:
     // void perspective_transformation(const vector<Point2f> &final_points, Mat &src);
     void perspective_transformation(const vector<Point2f>& final_points, Mat& gray_src, Mat &src);
     void get_corner_withnet(Mat &img);
+    void get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_point);
     void get_main_corner_withnet(Mat &img, Mat &canvas);
-    void get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point> border);
+    void get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point> border, vector<Point>& net_point, int net_index);
     Point getTargetPoint(Point pt_origin, Mat warpMatrix);
     // void get_corner(Mat &img);
     void find_anchor(Mat &img);
+    
     void get_anchor(Mat &img, const vector<Point> &four_station_contours, DebugUI &debug_ui, int index);
     void draw_debug_ui(Mat &img, DebugUI &debug_ui);
     void get_corner(Mat &gray_img, Mat &img);
