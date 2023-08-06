@@ -34,7 +34,7 @@ void Detectormanager::Manager_Run()
                 switch (param.get_run_mode())
                 {
                     case ExchangeSiteMode:
-                        detector = make_shared<SitedetectorPro>();
+                        detector = make_shared<Sitedetector>();
                         break;
                     case GoldMode:
                         detector = make_shared<Minenetdetector>(param.detector_args.path2model_am, 0, 0);

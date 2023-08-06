@@ -52,10 +52,12 @@ void Sitedetector::find_corner(Mat &img)
         drawContours(img, corner_contours, i, Scalar(0, 255, 0), 2, 8, corner_hierarchy, 0, Point());
         double G_avg = GetMeanValueInsideContour(img, corner_contours[i], 1);
 
-        // putText(img, "rate:" + to_string(rate), corner_contours[i][0], FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
-        // putText(img, "area:" + to_string(area), Point(corner_contours[i][0].x, corner_contours[i][0].y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
-        // putText(img, "ratio:" + to_string(contourArea(corner_contours[i]) / area ), Point(corner_contours[i][0].x, corner_contours[i][0].y + 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
-        // putText(img, "G_avg:" + to_string(G_avg), Point(corner_contours[i][0].x, corner_contours[i][0].y - 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
+        if(area < 300) continue;
+
+        putText(img, "rate:" + to_string(rate), corner_contours[i][0], FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
+        putText(img, "area:" + to_string(area), Point(corner_contours[i][0].x, corner_contours[i][0].y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
+        putText(img, "ratio:" + to_string(contourArea(corner_contours[i]) / area ), Point(corner_contours[i][0].x, corner_contours[i][0].y + 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
+        putText(img, "G_avg:" + to_string(G_avg), Point(corner_contours[i][0].x, corner_contours[i][0].y - 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
 
         if (rate >= param.site_min_rate && rate <= param.site_max_rate && \
             area >= param.site_min_area && area <= param.site_max_area && \
@@ -181,10 +183,10 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
     fillPoly(anchor_mask, anchor_poly, Scalar(255, 255, 255));
     thresh_output.copyTo(anchor_mask, anchor_mask);
 
-    // if(anchor_poly.size() != 4){
-    //     logger.warn("anchor_poly.size():{}", anchor_poly.size());
-    //     return;
-    // }
+    if(anchor_poly.size() != 4){
+        logger.warn("anchor_poly.size():{}", anchor_poly.size());
+        return;
+    }
 
     min_corner_rec = 100000;
     for(auto & contour : four_station_contour){
@@ -227,6 +229,16 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
     RotatedRect res_rect = minAreaRect(anchor_poly);
     double res_area = res_rect.size.width * res_rect.size.height;
     double poly_area = contourArea(anchor_poly);
+
+    double wh_rate = res_rect.size.width / res_rect.size.height;
+    if(wh_rate < 1){
+        wh_rate = 1 / wh_rate;
+    }
+    if(wh_rate > 3){
+        logger.warn("wh_rate:{}", wh_rate);
+        return;
+    }
+
 
     polylines(img, anchor_poly, true, Scalar(255, 0, 0), 2, 8, 0);
     putText(img, "match_rate:"+to_string(poly_area / res_area), anchor_poly[min_index] , FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 5);

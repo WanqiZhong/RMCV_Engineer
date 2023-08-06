@@ -184,6 +184,7 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     sensor_prefix = std::string(ROOT) + std::string(record.at("sensor_prefix").as_string());
     detector_prefix = std::string(ROOT) + std::string(record.at("detector_prefix").as_string());
     image_prefix = std::string(ROOT) + std::string(record.at("image_prefix").as_string());
+    shot_prefix = std::string(ROOT) + std::string(record.at("image_prefix").as_string());
 
     sensor_fps = record.at("sensor_fps").as_integer();
     detector_fps = record.at("detector_fps").as_integer();

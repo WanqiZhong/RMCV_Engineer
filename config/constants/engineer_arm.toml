@@ -16,8 +16,8 @@ recv_id = 0x002
 [sensor]
 [sensor.camera]
 serial_number = ""
-exposure_time_mine = 300.0
-exposure_time_exchangesite = 15.0
+exposure_time_mine = 12.0
+exposure_time_exchangesite = 3.0
 frame_rate = 60
 frame_width = 1280
 frame_height = 720
@@ -70,7 +70,7 @@ corner_rec_area_max = 1200
 [traditional.changesite]
 site_min_rate = 0.25
 site_max_rate = 4.0
-site_min_area = 300.0
+site_min_area = 350.0
 site_max_area = 20000.0
 site_area_rate = 0.90
-G_avg_max = 195
+G_avg_max = 210
