@@ -7,9 +7,11 @@ void SitedetectorPro::Detector_Run(Mat &img) {
     square_contour.clear();
     anchor_contour.clear();
     valid_contour.clear();
+    corner_cnt = 0;
+    
     find_four_corner(img);
-    find_anchor(img);
-    if (all_contours.empty()){
+    // find_anchor(img);
+    if (corner_cnt == 0){
         logger.warn("ExchangeSite_Run can't find normal corner");
     }else{
         find_anchor(ori_img);
@@ -18,7 +20,8 @@ void SitedetectorPro::Detector_Run(Mat &img) {
     //     reverse(anchor_point[0].begin(), anchor_point[0].end());
     // }
     // writeVideoRaw(img);
-    imshow("[EXCHANGE_SITE]", img);
+    imshow("[EXCHANGE_SITE]", ori_img);
+    waitKey(1);
 }
 
 
@@ -30,7 +33,7 @@ void SitedetectorPro::find_four_corner(Mat &img)
     vector<vector<Point>> corner_contours;
     vector<Vec4i> corner_hierarchy;
     double min_corner_area = 500000; // 记录当前最小的面积
-    min_corner_index = 0; corner_cnt = 0;
+    min_corner_index = 0; 
     Mat morphologyEx_thresh;
 
     cvtColor(img, thresh_output, COLOR_BGR2HSV);
@@ -71,17 +74,21 @@ void SitedetectorPro::find_four_corner(Mat &img)
                 all_contours.push_back(j);
             }
             valid_contour.push_back(corner_contours[i]);
-            anchor_contour.push_back(corner_contours[i][0]);
+
+            cv::Moments moments = cv::moments(corner_contours[i]);
+            double cX = moments.m10 / moments.m00;
+            double cY = moments.m01 / moments.m00;
+            anchor_contour.push_back(Point(cX, cY));
 
             // if (contourArea(corner_contours[i]) < min_corner_area)
             // {
             //     min_corner_area = contourArea(corner_contours[i]);
             //     min_corner_index = i;
             // }
-
             corner_cnt++;
         }
     }
+    imshow("[LOW_DEBUG]", img);
 
     // if (!corner_contours.empty()){
     //     // 得到最小面积角点（标志角点）的面积
@@ -93,9 +100,6 @@ void SitedetectorPro::find_four_corner(Mat &img)
     //     putText(img, "square:" + to_string(corner_contours[min_corner_index][0].x) + "," + to_string(corner_contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
     //     putText(img, "min_aera:"+to_string(min_corner_rec), Point(0, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
     // }
-
-    imshow("[FIND_CORNER]", img);
-    waitKey(1);
 
 }
 
@@ -112,8 +116,9 @@ void SitedetectorPro::find_anchor(Mat &img)
     debug_ui.right_flag = false;
     debug_ui.area = 0;
     debug_ui.match_rate = 0;
+    debug_ui.min_area = 100000;
     debug_ui.min_index = 0;
-    debug_ui.min_area_point = Point(0, 0); 
+    debug_ui.min_area_point = Point(-1,-1);
     debug_ui.small_square_point.clear();
     debug_ui.small_square_area.clear();
     debug_ui.poly.clear();
@@ -124,6 +129,7 @@ void SitedetectorPro::find_anchor(Mat &img)
         logger.warn("Wrong number of anchor_poly:{}", corner_cnt);
         if(!anchor_contour.empty())
             anchor_point.push_back(anchor_contour);
+        return;
     }else if(corner_cnt >= 4){
         int valid_index = 0;
         // 对于大于4个的统计数，遍历所有四个点的组合
@@ -153,7 +159,8 @@ void SitedetectorPro::find_anchor(Mat &img)
             }
         }
     }
-    get_anchor(img, debug_ui, 0);
+    if(debug_ui.right_flag)
+        get_anchor(img, debug_ui, 0);
     draw_debug_ui(img, debug_ui);
 }
 
@@ -190,7 +197,7 @@ void SitedetectorPro::find_best_match(Mat &img, const vector<Point>& four_statio
     // writeImageRaw(index, img);
 
     if(poly_area / res_area > debug_ui.match_rate){
-        logger.warn("match rate:{}", poly_area / res_area);
+        // logger.warn("match rate:{}", poly_area / res_area);
         debug_ui.match_rate = poly_area / res_area;
         debug_ui.poly = anchor_poly;
         debug_ui.area = res_area;
@@ -224,6 +231,7 @@ void SitedetectorPro::get_anchor(Mat &img, DebugUI &debug_ui, int index){
     cv::Point2f vertices[4];
     Mat anchor_mask;
 
+    square_contour.clear();
     anchor_mask = Mat::zeros(thresh_output.size(), CV_8UC1);
     fillPoly(anchor_mask, debug_ui.poly, Scalar(255, 255, 255));
     thresh_output.copyTo(anchor_mask, anchor_mask);
@@ -237,17 +245,23 @@ void SitedetectorPro::get_anchor(Mat &img, DebugUI &debug_ui, int index){
         }
         RotatedRect rec = minAreaRect(contour);
         double area = float(rec.size.width) * float(rec.size.height);
+        // logger.info("area:{}", area);
         if (area < debug_ui.min_area && area > 50)
         {
-            square_contour.clear();
-            square_contour.push_back(contour[0]);
+            cv::Moments moments = cv::moments(contour);
+            double cX = moments.m10 / moments.m00;
+            double cY = moments.m01 / moments.m00;
+            square_contour.push_back(Point(cX, cY));
+            debug_ui.small_square_area.push_back(area);
+            debug_ui.small_square_point.push_back(Point(cX, cY));
         }
     }
 
-    approxPolyDP(anchor_contour, anchor_poly, 25, true);
+    convexHull(Mat(anchor_contour), anchor_hull, false);
+    approxPolyDP(anchor_hull, anchor_poly, 25, true);
+    polylines(img, anchor_poly, true, Scalar(255, 255, 255), 2, 8, 0);
 
     if(!square_contour.empty()){
-
         cv::circle(img, square_contour[0], 3, cv::Scalar(255, 255, 255), 3);
         Point square_point;
         double square_x = 0;
@@ -274,15 +288,11 @@ void SitedetectorPro::get_anchor(Mat &img, DebugUI &debug_ui, int index){
         for (int i = 0; i < 4; ++i){
             anchor_temp.push_back(anchor_poly[(min_index + i) % 4]);
         }
-        temp_anchor_point.push_back(anchor_temp);
-
-        debug_ui.small_square_point.clear();
-        for(auto & t : square_contour){
-            debug_ui.small_square_point.push_back(t);
-            // if(contourArea(square_contour) < debug_ui.min_area){
-            //     debug_ui.min_area = contourArea(square_contour);
-            // }
-        }
+        
+        anchor_point.push_back(anchor_temp);
+        debug_ui.poly = anchor_poly;
+        debug_ui.min_index = min_index;
+        
     }
     
 }
@@ -297,7 +307,7 @@ void SitedetectorPro::draw_debug_ui(Mat &img, DebugUI &debug_ui){
         polylines(img, debug_ui.poly, true, Scalar(0, 255, 0), 2, 8, 0);
         putText(img, "poly_area:"+to_string(contourArea(debug_ui.poly)), Point(0, 90), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
     }
-    putText(img, "area:"+to_string(debug_ui.area), Point(0, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+    putText(img, "area:"+to_string(debug_ui.min_area), Point(0, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
     putText(img, "rate:"+to_string(debug_ui.match_rate), Point(0, 150), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
     if(debug_ui.right_flag){
         putText(img, "Right!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 255, 0), 2, 5);

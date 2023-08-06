@@ -7,11 +7,10 @@ void Sitedetector::Detector_Run(Mat &img) {
     square_contour.clear();
     anchor_contour.clear();
     valid_contour.clear();
+    corner_cnt = 0;
     find_corner(img);
     if (all_contours.empty()){
         logger.warn("ExchangeSite_Run can't find normal corner");
-    }else if (square_contour.empty()){
-        logger.warn("ExchangeSite_Run can't find square corner");
     }else{
         find_anchor(ori_img);
     }
@@ -29,11 +28,13 @@ void Sitedetector::find_corner(Mat &img)
 {
     vector<vector<Point>> corner_contours;
     vector<Vec4i> corner_hierarchy;
-    double min_corner_area = 10000; // 记录当前最小的面积
-    min_corner_index = 0; corner_cnt = 0;
+    double min_corner_area = 100000; // 记录当前最小的面积
+    min_corner_index = 0; 
 
 
     cvtColor(img, thresh_output, COLOR_BGR2HSV);
+
+    logger.critical("camp:{}", param.camp);
 
     if (param.camp == 0)
         inRange(thresh_output, Scalar(0, 0, 100), Scalar(180, 255, 255), thresh_output); // red
@@ -269,4 +270,6 @@ void Sitedetector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
     }else{
         putText(img, "Wrong!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255), 2, 5);
     }
+    imshow("[Debug_UI]", img);
+    waitKey(1);
 }

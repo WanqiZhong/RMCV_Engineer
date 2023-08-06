@@ -134,6 +134,7 @@ void Minedetector::get_corner_withnet(Mat &img)
         }
     }
     imshow("aft_img", canvas);
+    writeImageRaw(111, canvas);
     waitKey(1);
 }
 

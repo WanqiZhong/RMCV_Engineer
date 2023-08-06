@@ -24,14 +24,13 @@ using namespace cv;
 typedef struct _debugUI{
     vector<Point> small_square_point;
     vector<double> small_square_area;
-    vector<Point> four_contour_points;
     vector<Point> poly;
     float area;
     float match_rate;
     float min_area;
-    Point min_area_point;
     int min_index;
     bool right_flag;
+    Point min_area_point;
 }DebugUI;
 
 class Basedetector

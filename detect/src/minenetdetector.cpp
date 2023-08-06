@@ -201,7 +201,7 @@ Minenetdetector::Minenetdetector(std::string name, int _type, int log_level):
     model_xml = name + ".xml";
     model_bin = name + ".bin";
 
-//    ie.SetConfig({{CONFIG_KEY(CACHE_DIR), "../net_cache"}});
+    // ie.SetConfig({{CONFIG_KEY(CACHE_DIR), "../net_cache"}});
     network = ie.ReadNetwork(model_xml, model_bin);
 
     input_name = network.getInputsInfo().begin()->first;
@@ -272,12 +272,10 @@ void Minenetdetector::draw(cv::Mat img, const std::vector<armor::Armor> &objects
         cv::Scalar color = cv::Scalar(0, 1, 0);
         float c_mean = cv::mean(color)[0];
         cv::Scalar txt_color;
-        if (c_mean > 0.5)
-        {
+        if (c_mean > 0.5){
             txt_color = cv::Scalar(0, 0, 0);
         }
-        else
-        {
+        else{
             txt_color = cv::Scalar(255, 255, 255);
         }
 
