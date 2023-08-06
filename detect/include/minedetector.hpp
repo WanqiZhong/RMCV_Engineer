@@ -63,7 +63,7 @@ private:
     void get_corner_withnet(Mat &img);
     void get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_point);
     void get_main_corner_withnet(Mat &img, Mat &canvas);
-    void get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point> border, vector<Point>& net_point, int net_index);
+    void get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>& net_point, int net_index);
     Point getTargetPoint(Point pt_origin, Mat warpMatrix);
     // void get_corner(Mat &img);
     void find_anchor(Mat &img);

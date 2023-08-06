@@ -27,6 +27,7 @@ void Minenetdetector::DetectorNet_Run()
     { 
         cv::Mat img = sub.pop();
         cv::Mat ori_img = img.clone();
+        anchor_point.clear();
         if(!img.empty()){
             cv::Mat new_image = pad_image(img, cv::Size(640, 640));
             cv::Mat canvas;
@@ -55,6 +56,7 @@ void Minenetdetector::DetectorNet_Run()
                 }
                 anchor_point.push_back(pts);
             }
+            
             logger.info("Armor_size: {}", detections.size());
             draw(img, detections);
             img_pub.push(ori_img);
@@ -300,12 +302,10 @@ void Minenetdetector::draw(cv::Mat img, const std::vector<armor::Armor> &objects
         cv::Scalar color = cv::Scalar(0, 1, 0);
         float c_mean = cv::mean(color)[0];
         cv::Scalar txt_color;
-        if (c_mean > 0.5)
-        {
+        if (c_mean > 0.5){
             txt_color = cv::Scalar(0, 0, 0);
         }
-        else
-        {
+        else{
             txt_color = cv::Scalar(255, 255, 255);
         }
 

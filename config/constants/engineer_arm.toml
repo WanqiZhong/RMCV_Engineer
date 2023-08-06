@@ -52,8 +52,8 @@ cali_pitch = 90.0
 gold_thresh = 70
 gold_maxval = 255
 #框选单角点ROI
-bound_small = 100
-bound_big = 200
+bound_small = 150
+bound_big = 150
 w = 300
 h = 300
 #黑色角点筛选

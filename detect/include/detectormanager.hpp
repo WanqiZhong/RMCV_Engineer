@@ -38,6 +38,7 @@ class Detectormanager
         void Run();
         void Join();
         void Manager_Run();
+        void UpdateParam();
 };
 
 
