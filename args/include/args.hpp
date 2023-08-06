@@ -168,6 +168,7 @@ namespace args
         int site_min_area;
         int site_max_area;
         float site_area_rate;
+        int G_avg_max; 
 
         DebugArgs debug;
 

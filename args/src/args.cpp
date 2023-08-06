@@ -116,6 +116,7 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     site_min_area = changesite.at("site_min_area").as_floating();
     site_max_area = changesite.at("site_max_area").as_floating();
     site_area_rate = changesite.at("site_area_rate").as_floating();
+    G_avg_max = changesite.at("G_avg_max").as_integer();
 
     // Sensor
     auto &local_sensor = robot_constants.at("sensor");

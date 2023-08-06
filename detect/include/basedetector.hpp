@@ -57,6 +57,8 @@ class Basedetector
 
         /* 图像增强工具 */
         void img_light_enhance(Mat &img, Mat &img_hsv);
+        double GetMeanValueInsideContour(Mat& image, vector<Point>& contour, int index);
+
 
         /* 内录 */
         void initVideoRaw();

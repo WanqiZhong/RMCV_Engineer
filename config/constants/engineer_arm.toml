@@ -47,6 +47,7 @@ cali_yaw = 0.0
 cali_pitch = 90.0
 
 
+
 [traditional]
 [traditional.gold]
 gold_thresh = 70
@@ -68,9 +69,8 @@ corner_rec_area_max = 1200
 
 [traditional.changesite]
 site_min_rate = 0.25
-site_max_rate = 3.0
-site_min_area = 400.0
+site_max_rate = 4.0
+site_min_area = 300.0
 site_max_area = 20000.0
-site_area_rate = 0.7
-
-
+site_area_rate = 0.90
+G_avg_max = 195

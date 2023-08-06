@@ -53,6 +53,7 @@ void Detectormanager::Manager_Run()
 }
 
 
+
 void Detectormanager::UpdateParam()
 {
     auto robot_constants = toml::parse(param.constants_path);
@@ -101,4 +102,5 @@ void Detectormanager::UpdateParam()
     param.site_min_area = changesite.at("site_min_area").as_floating();
     param.site_max_area = changesite.at("site_max_area").as_floating();
     param.site_area_rate = changesite.at("site_area_rate").as_floating();
+    param.G_avg_max = changesite.at("G_avg_max").as_integer();
 }

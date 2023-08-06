@@ -46,8 +46,8 @@ void SitedetectorPro::find_four_corner(Mat &img)
 
     Mat kernel = getStructuringElement(MORPH_RECT, Size(11, 11));
     dilate(thresh_output, morphologyEx_thresh, kernel);
-    kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
-    erode(morphologyEx_thresh, morphologyEx_thresh, kernel);
+    // kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
+    // erode(morphologyEx_thresh, morphologyEx_thresh, kernel);
 
     imshow("[FIND_CORNER_AFT]", morphologyEx_thresh);
     findContours(morphologyEx_thresh, corner_contours, corner_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
@@ -58,35 +58,42 @@ void SitedetectorPro::find_four_corner(Mat &img)
         double rate = float(rec.size.width) / rec.size.height;
         double area = float(rec.size.width) * rec.size.height;
         drawContours(img, corner_contours, i, Scalar(0, 255, 0), 2, 8, corner_hierarchy, 0, Point());
-        putText(img, "rate:" + to_string(rate), corner_contours[i][0], FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
+        
+        double G_avg = GetMeanValueInsideContour(img, corner_contours[i], 1);
+        putText(img, "G_avg:" + to_string(G_avg), Point(corner_contours[i][0].x, corner_contours[i][0].y - 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
+        putText(img, "w/h_rate:" + to_string(rate), corner_contours[i][0], FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
         putText(img, "area:" + to_string(area), Point(corner_contours[i][0].x, corner_contours[i][0].y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
         putText(img, "ratio:" + to_string(contourArea(corner_contours[i]) / area ), Point(corner_contours[i][0].x, corner_contours[i][0].y + 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
 
-        if (rate >= param.site_min_rate && rate <= param.site_max_rate && \
-            area >= param.site_min_area && area <= param.site_max_area && \
-            contourArea(corner_contours[i]) / area <= param.site_area_rate){
+        if(G_avg >= param.G_avg_max) continue;
+        putText(img, "G_avg:" + to_string(G_avg), Point(corner_contours[i][0].x, corner_contours[i][0].y - 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
 
-            putText(img, "rate:" + to_string(rate), corner_contours[i][0], FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
-            putText(img, "area:" + to_string(area), Point(corner_contours[i][0].x, corner_contours[i][0].y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
-            putText(img, "ratio:" + to_string(contourArea(corner_contours[i]) / area ), Point(corner_contours[i][0].x, corner_contours[i][0].y + 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
+        if (rate < param.site_min_rate || rate > param.site_max_rate) continue;
+        putText(img, "w/h_rate:" + to_string(rate), corner_contours[i][0], FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
 
-            for (const auto & j : corner_contours[i]){
-                all_contours.push_back(j);
-            }
-            valid_contour.push_back(corner_contours[i]);
+        if(area < param.site_min_area || area > param.site_max_area) continue;
+        putText(img, "area:" + to_string(area), Point(corner_contours[i][0].x, corner_contours[i][0].y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
 
-            cv::Moments moments = cv::moments(corner_contours[i]);
-            double cX = moments.m10 / moments.m00;
-            double cY = moments.m01 / moments.m00;
-            anchor_contour.push_back(Point(cX, cY));
+        if(contourArea(corner_contours[i]) / area > param.site_area_rate) continue;
+        putText(img, "ratio:" + to_string(contourArea(corner_contours[i]) / area ), Point(corner_contours[i][0].x, corner_contours[i][0].y + 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 8);
+        
+
+        for (const auto & j : corner_contours[i]){
+            all_contours.push_back(j);
+        }
+        valid_contour.push_back(corner_contours[i]);
+
+        cv::Moments moments = cv::moments(corner_contours[i]);
+        double cX = moments.m10 / moments.m00;
+        double cY = moments.m01 / moments.m00;
+        anchor_contour.push_back(Point(cX, cY));
 
             // if (contourArea(corner_contours[i]) < min_corner_area)
             // {
             //     min_corner_area = contourArea(corner_contours[i]);
             //     min_corner_index = i;
             // }
-            corner_cnt++;
-        }
+        corner_cnt++;
     }
     imshow("[LOW_DEBUG]", img);
 
@@ -95,7 +102,6 @@ void SitedetectorPro::find_four_corner(Mat &img)
     //     // 使用理论上正方形小角点的外接矩形面积应当小于最小角点（标志角点）的面积
     //     min_corner_rec = contourArea(corner_contours[min_corner_index]);
     //     // RotatedRect rec = minAreaRect(corner_contours[min_corner_index]);
-    //     // 提取右上角标志角点的一个点单独储存，用于后续按顺序输出角点座标
     //     square_contour.push_back(corner_contours[min_corner_index][0]);
     //     putText(img, "square:" + to_string(corner_contours[min_corner_index][0].x) + "," + to_string(corner_contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
     //     putText(img, "min_aera:"+to_string(min_corner_rec), Point(0, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
@@ -176,16 +182,55 @@ void SitedetectorPro::find_best_match(Mat &img, const vector<Point>& four_statio
     int min_index = 0;
     cv::Point2f vertices[4];
     Mat anchor_mask;
+    double min_corner_area = 100000;
+    bool min_corner_flag = false;
 
     convexHull(Mat(four_station_contours), anchor_hull, false);
     approxPolyDP(anchor_hull, anchor_poly, 25, true);
+    
 
     anchor_mask = Mat::zeros(thresh_output.size(), CV_8UC1);
     fillPoly(anchor_mask, anchor_poly, Scalar(255, 255, 255));
     thresh_output.copyTo(anchor_mask, anchor_mask);
 
+    if(anchor_poly.size() != 4){
+        logger.warn("anchor_poly.size():{}", anchor_poly.size());
+        return;
+    }
+
     findContours(anchor_mask, anchor_contours, anchor_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
+    for (int i = 0; i < anchor_contours.size(); i++)
+    {
+        RotatedRect rec = minAreaRect(anchor_contours[i]);
+        double rate = float(rec.size.width) / rec.size.height;
+        double area = float(rec.size.width) * rec.size.height;
+        
+        if (rate < param.site_min_rate || rate > param.site_max_rate) continue;
+        if(area < param.site_min_area || area > param.site_max_area) continue;
+        if(contourArea(anchor_contours[i]) / area > param.site_area_rate) continue;
+        
+        if (contourArea(anchor_contours[i]) < min_corner_area)
+        {
+            min_corner_area = contourArea(anchor_contours[i]);
+            min_corner_index = i;
+        }
+    }
+
+    for (int i = 0; i < anchor_contours.size(); i++)
+    {
+        if (contourArea(anchor_contours[i]) < min_corner_area)
+        {
+            min_corner_flag = true;
+            break;
+        }
+    }
+
+    if(!min_corner_flag){
+        logger.warn("min_corner_flag:{}", min_corner_flag);
+        return;
+    }
+    
     RotatedRect res_rect = minAreaRect(anchor_poly);
     double res_area = res_rect.size.width * res_rect.size.height;
     double poly_area = contourArea(anchor_poly);
@@ -217,6 +262,8 @@ void SitedetectorPro::find_best_match(Mat &img, const vector<Point>& four_statio
 }
 
 
+
+
 void SitedetectorPro::get_anchor(Mat &img, DebugUI &debug_ui, int index){
 
     vector<vector<Point>> temp_anchor_point;
@@ -235,6 +282,14 @@ void SitedetectorPro::get_anchor(Mat &img, DebugUI &debug_ui, int index){
     anchor_mask = Mat::zeros(thresh_output.size(), CV_8UC1);
     fillPoly(anchor_mask, debug_ui.poly, Scalar(255, 255, 255));
     thresh_output.copyTo(anchor_mask, anchor_mask);
+
+    imshow("[LAST]",anchor_mask);
+    waitKey(1);
+
+    if(anchor_poly.size() != 4){
+        logger.warn("anchor_poly.size():{}", anchor_poly.size());
+        return;
+    }
 
     findContours(anchor_mask, anchor_contours, anchor_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 

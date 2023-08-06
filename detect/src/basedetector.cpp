@@ -9,6 +9,22 @@ void Basedetector::clearAnchorPoint() {
 }
 
 
+
+double Basedetector::GetMeanValueInsideContour(Mat& image, vector<Point>& contour, int index)
+{
+    vector<Mat> channels;
+    split(image, channels);
+
+    Mat greenChannel = channels[index];
+
+    Mat mask = Mat::zeros(image.size(), CV_8UC1);
+    drawContours(mask, vector<vector<Point>>{contour}, -1, Scalar(255), -1);
+
+    Scalar meanValue = mean(greenChannel, mask);
+    return meanValue[0];
+
+}
+
 void Basedetector::img_light_enhance(Mat &img, Mat &img_hsv){
     if(!img.empty()){
 
