@@ -67,22 +67,34 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_po
             int y = 0;
             int x_max = 0;
             int y_max = 0;
-            int bound_small = param.bound_small;
-            int bound_big = param.bound_big;
+            
             int w = param.w;
             int h = param.h;
             square_contour.clear();
             for (int t = 0; t < mine_side.size(); t++)
             {
+                int bound_big_x = param.bound_big;
+                int bound_big_y = param.bound_big;
                 auto all_start = chrono::steady_clock::now();
                 Mat img_ori = img.clone();
                 Mat img_rect;
-                x = max(mine_side[t].x - bound_big, 0);
-                y = max(mine_side[t].y - bound_big, 0);
-                x_max = min(x + w, img.cols);
-                y_max = min(y + h, img.rows);
-                Rect rect(x, y, x_max - x, y_max - y);
-                img_rect = img_ori(rect);
+                if(mine_side[t].x - bound_big_x < 0){
+                    bound_big_x = mine_side[t].x;
+                }
+                if(mine_side[t].y - bound_big_y < 0){
+                    bound_big_y = mine_side[t].y;
+                }
+                try{
+                    x = max(mine_side[t].x - bound_big_x, 0);
+                    y = max(mine_side[t].y - bound_big_y, 0);
+                    x_max = min(x + w, img.cols-1);
+                    y_max = min(y + h, img.rows-1);
+                    Rect rect(x, y, x_max - x, y_max - y);
+                    img_rect = img_ori(rect);
+                }catch(exception e){
+                    logger.critical("Unvalid rect:{},{},{},{}",x, y, x_max - x, y_max - y);
+                    continue;
+                }
 
                 // auto start = std::chrono::system_clock::now();
                 // get_mask(img_ori, mask);
@@ -95,7 +107,7 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_po
                 // Get the current time
                 auto start = std::chrono::system_clock::now();
                 // Mat new_canvas = canvas.clone();
-                get_main_corner_withnet(img_rect, canvas, mine_side, t);
+                get_main_corner_withnet(img_rect, canvas, mine_side, t, bound_big_x, bound_big_y);
                 // Get the elapsed time since the start
                 auto elapsed = std::chrono::system_clock::now() - start;
                 // Get the number of milliseconds elapsed and print it
@@ -109,6 +121,8 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_po
                 // logger.critical("Time taken to get all corner: {} ms", all_ms);
             }
             auto start = std::chrono::system_clock::now();
+            drawContours(canvas, valid_contours, -1, Scalar(255), -1);
+            writeImageRaw(333,canvas);
             find_anchor(canvas);
             auto elapsed = std::chrono::system_clock::now() - start;
             auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
@@ -117,7 +131,7 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_po
     }
 }
 
-void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>& net_point, int net_index)
+void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>& net_point, int net_index, int bound_big_x, int bound_big_y)
 {
     Mat gray_img;
     int corner_cnt = 0;
@@ -128,15 +142,15 @@ void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>&
     cvtColor(img, gray_img, COLOR_BGR2GRAY);
     threshold(gray_img, gray_img, param.corner_thresh, 255, THRESH_BINARY); // >130 -> White     < 130 -> black  (higher threshold, more black)
     threshold(gray_img, gray_img, 0, 255, THRESH_BINARY_INV);
-    Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
+    Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
     // 膨胀
     dilate(gray_img, gray_img, kernel);
     // 反色，黑色换白色
     imshow("threshold", gray_img);
     findContours(gray_img, contours, RETR_EXTERNAL, CHAIN_APPROX_NONE);
     // cout << "contours size:" << contours.size() << endl;
-    while (corner_cnt <= 1 && ratio_thres >= param.ratio_thres_min && area_ratio_thres >= param.area_ratio_thres_min)
-    {
+    // while (corner_cnt <= 1 && ratio_thres >= param.ratio_thres_min && area_ratio_thres >= param.area_ratio_thres_min)
+    // {
         // logger.info("corner_cnt:{}", contours.size());
         for (auto &contour : contours)
         {
@@ -144,10 +158,39 @@ void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>&
             if (contourArea(contour) > param.corner_contour_area_min && contourArea(contour) < param.corner_contour_area_max)
             {
                 con_rect = minAreaRect(contour);
-                con_rect.center.x = con_rect.center.x + net_point[net_index].x - param.bound_big;
-                con_rect.center.y = con_rect.center.y + net_point[net_index].y - param.bound_big;
+                con_rect.center.x = con_rect.center.x + net_point[net_index].x - bound_big_x;
+                con_rect.center.y = con_rect.center.y + net_point[net_index].y - bound_big_y;
                 double ratio = con_rect.size.width / con_rect.size.height;
                 double area_ratio = contourArea(contour) / (con_rect.size.width * con_rect.size.height);
+                cv::Moments moments = cv::moments(contour);
+                // 计算轮廓的中心点坐标
+                double cX = moments.m10 / moments.m00;
+                double cY = moments.m01 / moments.m00;
+                cv::circle(canvas, Point((int)cX+net_point[net_index].x-bound_big_x, (int)cY+ net_point[net_index].y - bound_big_y), 5, cv::Scalar(0, 255, 0), 5);
+
+
+                if(!net_point.empty()){
+                    
+                    double fnX = 0;
+                    double fnY = 0;
+                    for(auto &net_p:net_point){
+                        fnX += net_p.x;
+                        fnY += net_p.y;
+                    }
+                    fnX /= net_point.size();
+                    fnY /= net_point.size();
+
+                    double distance = sqrt(pow(fnX - (cX+bound_big_x), 2) + pow(fnX - (cY+bound_big_y), 2));  
+
+                    putText(canvas, "dis:" + to_string(distance), Point(con_rect.center.x,con_rect.center.y + 80), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255), 2, 5);             
+
+                    cv::circle(canvas, Point(fnX, fnY), 5, cv::Scalar(0, 255, 255), 5);
+
+                    if(distance < 230) continue;
+
+                    putText(canvas, "dis:" + to_string(distance), Point(con_rect.center.x,con_rect.center.y + 80), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 0, 0), 2, 5);             
+                }
+
                 // putText(canvas, "area_ratio:" + to_string(area_ratio), Point(con_rect.center.x,con_rect.center.y + 20), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
                 putText(canvas, "aera:" + to_string(contourArea(contour)), con_rect.center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
                 // logger.info("ratio:{}", ratio);
@@ -161,10 +204,14 @@ void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>&
                 {
                     ratio = 1 / ratio;
                 }
-                if (ratio < ratio_thres || ratio == 1 || area_ratio < area_ratio_thres)
+                putText(canvas, "ratio:" + to_string(ratio), Point(con_rect.center.x,con_rect.center.y + 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255), 2, 5);
+                putText(canvas, "area_ratio:" + to_string(area_ratio), Point(con_rect.center.x,con_rect.center.y + 20), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255), 2, 5);
+                if (ratio < 0.3)
                 {
-                    putText(canvas, "area_ratio:" + to_string(area_ratio), Point(con_rect.center.x,con_rect.center.y + 20), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255), 2, 5);
-                    putText(canvas, "ratio:" + to_string(ratio), Point(con_rect.center.x,con_rect.center.y + 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255), 2, 5);
+                    continue;
+                }
+                if(area_ratio < 0.4){
+                    
                     continue;
                 }
                 putText(canvas, "area_ratio:" + to_string(area_ratio), Point(con_rect.center.x,con_rect.center.y + 20), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
@@ -227,55 +274,44 @@ void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>&
                     continue;
                 }
                 // 计算轮廓的矩
-                cv::Moments moments = cv::moments(contour);
-                // 计算轮廓的中心点坐标
-                double cX = moments.m10 / moments.m00;
-                double cY = moments.m01 / moments.m00;
-                cv::circle(canvas, Point((int)cX, (int)cY), 5, cv::Scalar(0, 255, 0), 5);
-
+                
                 //计算网络识别结果与轮廓的距离
                 CornerContour cornercontour;
                 cornercontour.contour = contour;
                 double distance = 0;
-                double nX = param.bound_big;
-                double nY = param.bound_big;
+                double nX = bound_big_x;
+                double nY = bound_big_y;
                 distance = pow(nX - cX, 2) + pow(nY - cY, 2);
                 cornercontour.distance = distance;
                 min_distance_contours.push_back(cornercontour);
 
                 // cout << "net_point.size():" << net_point.size() << endl;
-                // if(!net_point.empty()){
-                    
-                    // distance = pow(nX - cX, 2) + pow(nY - cY, 2);
-                    // cv::circle(canvas, Point((int)nX, (int)nY), 5, cv::Scalar(0, 255, 255), 5);
-                    
-                    //if(distance < 30 || distance > 200) continue;
-                // }
+                
                 // putText(canvas, "distance:" + to_string(distance), Point(con_rect.center.x,con_rect.center.y + 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
 
                 corner_cnt++;
 
-                Point2f con_points[4];
-                con_rect.points(con_points);
-                vector<Point> con_point;
-                for (int i = 0; i < 4; i++)
-                {
-                    con_points[i].x = con_points[i].x + net_point[net_index].x - param.bound_big;
-                    con_points[i].y = con_points[i].y + net_point[net_index].y - param.bound_big;
-                    con_point.push_back(con_points[i]);
-                }
-                polylines(canvas, con_point, true, Scalar(0, 255, 0), 2);
+                // Point2f con_points[4];
+                // con_rect.points(con_points);
+                // vector<Point> con_point;
+                // for (int i = 0; i < 4; i++)
+                // {
+                //     con_points[i].x = con_points[i].x + net_point[net_index].x - param.bound_big;
+                //     con_points[i].y = con_points[i].y + net_point[net_index].y - param.bound_big;
+                //     con_point.push_back(con_points[i]);
+                // }
+                // polylines(canvas, con_point, true, Scalar(0, 255, 0), 2);
 
             }
             else{
                 putText(canvas, "aera:" + to_string(contourArea(contour)), con_rect.center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255), 2, 5);
             }
         }
-        ratio_thres -= 0.1;
-        area_ratio_thres -= 0.1;
-        logger.info("ratio_thres:{}", ratio_thres);
-        logger.info("area_ratio_thres:{}", area_ratio_thres);
-    }
+        // ratio_thres -= 0.1;
+        // area_ratio_thres -= 0.1;
+        // logger.info("ratio_thres:{}", ratio_thres);
+        // logger.info("area_ratio_thres:{}", area_ratio_thres);
+    // }
     // imshow("canny", canny);
     // waitKey(1);
     sort(min_distance_contours.begin(),min_distance_contours.end(),[](CornerContour a, CornerContour b){
@@ -287,9 +323,13 @@ void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>&
     // }
     if(!min_distance_contours.empty()){
         valid_cnt++;
+        for (int i = 0; i < min_distance_contours[0].contour.size(); i++)
+                {
+                    min_distance_contours[0].contour[i].x = min_distance_contours[0].contour[i].x + net_point[net_index].x - bound_big_x;
+                    min_distance_contours[0].contour[i].y = min_distance_contours[0].contour[i].y + net_point[net_index].y - bound_big_y;
+                }
         valid_contours.push_back(min_distance_contours[0].contour);
     }
-
 }
 
 Point Minedetector::getTargetPoint(cv::Point pt_center, cv::Mat warpMatrix)
@@ -570,7 +610,7 @@ void Minedetector::get_anchor(Mat &img, const vector<Point> &four_station_contou
     // for (int i = 0; i < 4; ++i){
     //     line(img, vertices[i], vertices[(i + 1) % 4], Scalar(255, 0, 0));
     // }
-    writeImageRaw(index, img);
+    // writeImageRaw(index, img);
         
 
     if ( poly_area / res_area > debug_ui.match_rate && poly_area >= param.poly_area && res_rate < param.res_rate)

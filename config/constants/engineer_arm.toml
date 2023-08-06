@@ -16,7 +16,7 @@ recv_id = 0x002
 [sensor]
 [sensor.camera]
 serial_number = ""
-exposure_time_mine = 300.0
+exposure_time_mine = 150.0
 exposure_time_exchangesite = 70.0
 frame_rate = 60
 frame_width = 1280
@@ -67,7 +67,7 @@ corner_contour_area_max = 10000
 corner_rec_area_min = 800
 #凸包后筛选
 res_rate = 2.5 #外接矩形长宽比
-poly_area = 50000
+poly_area = 30000
 match_rate = 0.65 #poly面积与外接矩形面积之比
 
 

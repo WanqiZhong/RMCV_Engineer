@@ -126,6 +126,7 @@ void Basedetector::writeVideoRaw(cv::Mat &img) {
 
 void Basedetector::writeImageRaw(int index, Mat& img){
     for(auto num: param.writer_set){
+        cout<< param.get_log_path(num, param.shot_prefix, index) + ".jpg" <<endl;
         imwrite(param.get_log_path(num, param.shot_prefix, index) + ".jpg", img);
     }
 }

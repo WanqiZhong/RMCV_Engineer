@@ -187,6 +187,7 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     sensor_prefix = std::string(ROOT) + std::string(record.at("sensor_prefix").as_string());
     detector_prefix = std::string(ROOT) + std::string(record.at("detector_prefix").as_string());
     image_prefix = std::string(ROOT) + std::string(record.at("image_prefix").as_string());
+    shot_prefix = std::string(ROOT) + std::string(record.at("shot_prefix").as_string());
 
     sensor_fps = record.at("sensor_fps").as_integer();
     detector_fps = record.at("detector_fps").as_integer();
@@ -234,7 +235,7 @@ string Args::get_log_path(int num, string prefix, int index){
     auto t_c = std::chrono::system_clock::to_time_t(now);
     char timestamp[20];
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M-%S", std::localtime(&t_c));
-    string path = prefix + param.cam_map.at(num);
+    string path = prefix + param.cam_map.at(num) + '/' + to_string(index);
     fs::path dirPath = path;
     if (!fs::exists(dirPath)) {
         fs::create_directories(dirPath);
