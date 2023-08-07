@@ -58,6 +58,16 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_po
        logger.warn("{}", anchor_point[0][0].x);
     }
     
+    Mat gray_img; 
+    cvtColor(img, gray_img, COLOR_BGR2GRAY);
+    threshold(gray_img, gray_img, param.corner_thresh, 255, THRESH_BINARY); // >130 -> White     < 130 -> black  (higher threshold, more black)
+    threshold(gray_img, gray_img, 0, 255, THRESH_BINARY_INV);
+    Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
+    // 膨胀
+    dilate(gray_img, gray_img, kernel);
+    // 反色，黑色换白色
+    imshow("all_threshold", gray_img);
+
     if(!anchor_point.empty()){
         // auto mine_side = anchor_point[0];
         for (auto &mine_side : anchor_point)

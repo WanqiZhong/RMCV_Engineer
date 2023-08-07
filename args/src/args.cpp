@@ -235,7 +235,7 @@ string Args::get_log_path(int num, string prefix, int index){
     auto t_c = std::chrono::system_clock::to_time_t(now);
     char timestamp[20];
     strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M-%S", std::localtime(&t_c));
-    string path = prefix + param.cam_map.at(num) + '/' + to_string(index);
+    string path = prefix + param.cam_map.at(num);
     fs::path dirPath = path;
     if (!fs::exists(dirPath)) {
         fs::create_directories(dirPath);
