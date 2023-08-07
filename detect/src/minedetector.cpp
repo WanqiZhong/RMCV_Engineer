@@ -180,7 +180,7 @@ void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>&
                     fnX /= net_point.size();
                     fnY /= net_point.size();
 
-                    double distance = sqrt(pow(fnX - (cX+bound_big_x), 2) + pow(fnX - (cY+bound_big_y), 2));  
+                    double distance = sqrt(pow(fnX - (cX+bound_big_x), 2) + pow(fnY - (cY+bound_big_y), 2));  
 
                     putText(canvas, "dis:" + to_string(distance), Point(con_rect.center.x,con_rect.center.y + 80), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255), 2, 5);             
 
