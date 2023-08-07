@@ -132,6 +132,7 @@ namespace args
         std::string detector_prefix;
         std::string image_prefix;
         std::string shot_prefix;
+        std::string video_prefix;
 
         int sensor_fps;
         int detector_fps;
@@ -145,6 +146,8 @@ namespace args
         vector<int> writer_set;
         vector<int> detector_writer_set;
         string get_log_path(int num, string prefix, int index = 0);
+
+        string get_video_log_path(int num, int index);
 
         // ================= Traditional ======================
         int gold_thresh;

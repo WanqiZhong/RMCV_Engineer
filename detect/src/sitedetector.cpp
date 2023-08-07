@@ -21,7 +21,7 @@ void Sitedetector::Detector_Run(Mat &img) {
     if(!anchor_point.empty()){
         reverse(anchor_point[0].begin(), anchor_point[0].end());
     }
-    writeVideoRaw(img);
+    // writeVideoRaw(img);
 }
 
 /// @brief get coordinates of exchange station

@@ -121,7 +121,7 @@ void Sensor::writeImageRaw(int index, Mat& img){
 void Sensor::initVideoRaw() {
 
     for(auto num: param.writer_set){
-        VideoWriter videoWriter(param.get_log_path(num, param.sensor_prefix) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
+        VideoWriter videoWriter(param.get_video_log_path(num, 0) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
         writer_map.insert(pair<int,VideoWriter>(num,videoWriter));
     }
 }
@@ -134,10 +134,11 @@ void Sensor::writeVideoRaw(cv::Mat &img) {
     for(auto num: param.writer_set){
         VideoWriter videoWriter = writer_map.at(num);
         videoWriter.write(img);
-        if (frame_index++ >= 1800) {
+        logger.warn("Write video to {}", param.get_video_log_path(num, 0) + ".mp4");
+        if (frame_index++ >= 300) {
             frame_index = 0;
             videoWriter.release();
-            writer_map.at(num) = VideoWriter(param.get_log_path(num, param.sensor_prefix) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
+            writer_map.at(num) = VideoWriter(param.get_video_log_path(num, 0) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
         }
     }
 }
