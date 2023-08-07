@@ -18,6 +18,7 @@
 #include "umt.hpp"
 #include "data.hpp"
 #include "basedetector.hpp"
+#include "calculate.hpp"
 
 using namespace std;
 using namespace cv;
@@ -29,6 +30,7 @@ class Sitedetector : public Basedetector
     public:
         Sitedetector() = default;
         ~Sitedetector() = default;
+        Calculator calculator = Calculator();
 
         /* 主进程 */
         void Detector_Run(Mat &img) override;

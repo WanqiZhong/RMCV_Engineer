@@ -29,6 +29,7 @@ using namespace cv;
 
 const float LENGTH = 275;
 const float HALF_LENGTH = 275.0 / 2;
+const float MINE_HALF_LENGTH = 100.0;
 
 #define Laptop
 
@@ -59,7 +60,7 @@ private:
     thread Calculator_thread;
 
 public:
-    Calculator(){};
+    Calculator();
     ~Calculator(){};
 
     void Run();
@@ -70,6 +71,7 @@ public:
     void CalculateInit();
     void CalculateInit(Mat CameraMatrix, Mat DistCoeffs);
     void CalculatePnp();
+    bool CalculatePnpLight(vector<Point> Mine2D_int, Mat& canvas);
     bool isRotationMatirx(Eigen::Matrix3d R);
     Eigen::Vector3d rotationMatrixToEulerAngles(Eigen::Matrix3d &R);
 

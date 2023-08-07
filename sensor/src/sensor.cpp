@@ -43,7 +43,7 @@ void Sensor::Sensor_Run() {
 
     while (param.get_run_mode() != HALT)
     {
-        logger.info("Vision Online!");
+        // logger.info("Vision Online!");
         // Pop electric control data
         try {
             // ecu_data_try = receive_sub.try_pop();
@@ -52,7 +52,7 @@ void Sensor::Sensor_Run() {
             //     logger.info("camp:{} visual_flag:{} view:{} mode:{}",ecu_data.camp, ecu_data.visual_flag, ecu_data.view, ecu_data.mode);
             // } else {
                 ecu_data.view = param.operator_cam_index;
-                ecu_data.mode = 2;
+                ecu_data.mode = param.default_mode;
                 ecu_data.visual_flag = 1;
                 if(param.camp == -1){
                     ecu_data.camp = 0;
@@ -65,6 +65,8 @@ void Sensor::Sensor_Run() {
             logger.warn("ECU_DATA reiceve error!");
         }
 
+        // [DEBUG]
+        ecu_data.mode = param.default_mode;
         param.operator_cam_index = ecu_data.view % 4;
         param.camp = ecu_data.camp;
         param.visual_status = ecu_data.visual_flag;
@@ -119,7 +121,7 @@ void Sensor::writeImageRaw(int index, Mat& img){
 void Sensor::initVideoRaw() {
 
     for(auto num: param.writer_set){
-        VideoWriter videoWriter(param.get_log_path(num, param.sensor_prefix) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
+        VideoWriter videoWriter(param.get_video_log_path(num, 0) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
         writer_map.insert(pair<int,VideoWriter>(num,videoWriter));
     }
 }
@@ -132,10 +134,11 @@ void Sensor::writeVideoRaw(cv::Mat &img) {
     for(auto num: param.writer_set){
         VideoWriter videoWriter = writer_map.at(num);
         videoWriter.write(img);
-        if (frame_index++ >= 1800) {
+        // logger.warn("Write video to {}", param.get_video_log_path(num, 0) + ".mp4");
+        if (frame_index++ >= 300) {
             frame_index = 0;
             videoWriter.release();
-            writer_map.at(num) = VideoWriter(param.get_log_path(num, param.sensor_prefix) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
+            writer_map.at(num) = VideoWriter(param.get_video_log_path(num, 0) + ".mp4", param.codec, param.sensor_fps, Size(param.frame_width, param.frame_height));
         }
     }
 }

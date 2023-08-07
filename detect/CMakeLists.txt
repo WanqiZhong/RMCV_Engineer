@@ -16,6 +16,7 @@ set(include ${InferenceEngine_INCLUDE_DIRS} ${include})
 set(include ${ngraph_INCLUDE_DIRS} ${include})
 set(link data ${link})
 set(link args ${link})
+set(link calculate ${link})
 
 
 add_library(detect ${src})

@@ -1,6 +1,7 @@
 #include "cstdlib"
 //#include "detector.hpp"
 #include "detectormanager.hpp"
+#include "minenetdetector.hpp"
 #include "args.hpp"
 #include "umt.hpp"
 #include "log.hpp"
@@ -32,6 +33,9 @@ int main(int argc, char **argv)
     }
     Basecap->Run();
 
+
+    Minenetdetector minenetdetector(param.detector_args.path2model_am, 0, 0);
+    minenetdetector.Run();
     Detectormanager detect;
     detect.Run();
     Calculator calculate;
@@ -40,6 +44,7 @@ int main(int argc, char **argv)
     bridge.Run();
 
     Basecap->Join();
+    minenetdetector.Join();
     detect.Join();
     calculate.Join();
     bridge.Join();

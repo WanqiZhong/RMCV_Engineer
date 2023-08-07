@@ -47,6 +47,7 @@ detector_fps = 15
 image_prefix = "logs/image"
 image_stride = 5
 shot_prefix = "logs/screenshot"
+video_prefix = "logs/video"
 
 # Video
 [video]

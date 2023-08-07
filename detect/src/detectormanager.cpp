@@ -19,17 +19,13 @@ void Detectormanager::Join() {
 void Detectormanager::Manager_Run()
 {
     cv::Mat img;
-    umt::Subscriber<cv::Mat> sub("channel0");
+    umt::Subscriber<cv::Mat> sub("channel1");
     umt::Publisher<MINE_POSITION_MSG> anchor_pub("anchor_point_data");
     while(param.get_run_mode()!=HALT)
     {
-        try{
-            img = sub.pop();
-        }catch(const HaltEvent&){
-            break;
-        }
-        if(!img.empty()){
-            if( last_mode != param.get_run_mode()){
+        // a red mat
+        // img = cv::Mat(1280,720,CV_8UC3,cv::Scalar(0,0,255));
+        if( last_mode != param.get_run_mode()){
                 last_mode = param.get_run_mode();
                 switch (param.get_run_mode())
                 {
@@ -37,13 +33,20 @@ void Detectormanager::Manager_Run()
                         detector = make_shared<Sitedetector>();
                         break;
                     case GoldMode:
-                        detector = make_shared<Minenetdetector>(param.detector_args.path2model_am, 0, 0);
-                        break;
-                    default:
                         detector = make_shared<Minedetector>();
                         break;
+                    default:
+                        detector = make_shared<Sitedetector>();
+                        break;
                 }
-            }
+        }
+        try{
+            img = sub.pop();
+            // logger.warn("get img");
+        }catch(const HaltEvent&){
+            break;
+        }
+        if(!img.empty()){
             UpdateParam();
             detector->clearAnchorPoint();
             detector->Detector_Run(img);

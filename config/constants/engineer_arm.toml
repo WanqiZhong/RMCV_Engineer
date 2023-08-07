@@ -16,6 +16,8 @@ recv_id = 0x002
 [sensor]
 [sensor.camera]
 serial_number = ""
+exposure_time_mine = 10.0
+exposure_time_exchangesite = 10.0
 exposure_time_mine = 12.0
 exposure_time_exchangesite = 3.0
 frame_rate = 60
@@ -53,24 +55,35 @@ cali_pitch = 90.0
 gold_thresh = 70
 gold_maxval = 255
 #框选单角点ROI
-bound_small = 80
-bound_big = 180
+bound_small = 150
+bound_big = 150
 w = 300
 h = 300
 #黑色角点筛选
 ratio_thres = 0.6
 area_ratio_thres = 0.6
-corner_thresh = 130  # >130 -> White     < 130 -> black  (higher threshold, more black)
+corner_thresh = 130  # >130-> White     < 130 -> black  (higher threshold, more black in real)
 ratio_thres_min = 0.3
 area_ratio_thres_min = 0.3
-corner_contour_area_min = 800
-corner_contour_area_max = 6000
-corner_rec_area_max = 1200
+corner_contour_area_min = 700
+corner_contour_area_max = 10000
+corner_rec_area_min = 800
+#凸包后筛选
+res_rate = 2.5 #外接矩形长宽比
+poly_area = 30000
+match_rate = 0.65 #poly面积与外接矩形面积之比
+
 
 [traditional.changesite]
 site_min_rate = 0.25
 site_max_rate = 4.0
-site_min_area = 350.0
+site_min_area = 200.0
 site_max_area = 20000.0
-site_area_rate = 0.90
+site_area_rate = 0.9
 G_avg_max = 210
+
+
+[debug_mode]
+default_mode = 2
+
+

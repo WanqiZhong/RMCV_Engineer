@@ -132,6 +132,7 @@ namespace args
         std::string detector_prefix;
         std::string image_prefix;
         std::string shot_prefix;
+        std::string video_prefix;
 
         int sensor_fps;
         int detector_fps;
@@ -145,6 +146,8 @@ namespace args
         vector<int> writer_set;
         vector<int> detector_writer_set;
         string get_log_path(int num, string prefix, int index = 0);
+
+        string get_video_log_path(int num, int index);
 
         // ================= Traditional ======================
         int gold_thresh;
@@ -161,7 +164,10 @@ namespace args
         float area_ratio_thres_min;
         int corner_contour_area_min;
         int corner_contour_area_max;
-        int corner_rec_area_max;
+        int corner_rec_area_min;
+        float res_rate;
+        int poly_area;
+        float match_rate;
 
         float site_min_rate;
         float site_max_rate;
@@ -169,6 +175,8 @@ namespace args
         int site_max_area;
         float site_area_rate;
         int G_avg_max; 
+
+        int default_mode;
 
         DebugArgs debug;
 

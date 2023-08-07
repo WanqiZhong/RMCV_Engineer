@@ -37,6 +37,7 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
 
     // Global
     std::string mode = local_config.at("run_mode").as_string();
+
     if (mode == "GOLD_MODE") {
         _run_mode = GoldMode;
     } else if (mode == "SILVER_MODE"){
@@ -109,7 +110,11 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     area_ratio_thres_min = gold.at("area_ratio_thres_min").as_floating();
     corner_contour_area_min = gold.at("corner_contour_area_min").as_integer();
     corner_contour_area_max = gold.at("corner_contour_area_max").as_integer();
-    corner_rec_area_max = gold.at("corner_rec_area_max").as_integer();
+    corner_rec_area_min = gold.at("corner_rec_area_min").as_integer();
+    res_rate = gold.at("res_rate").as_floating();
+    poly_area = gold.at("poly_area").as_integer();
+    match_rate = gold.at("match_rate").as_floating();
+
     
     site_min_rate = changesite.at("site_min_rate").as_floating();
     site_max_rate = changesite.at("site_max_rate").as_floating();
@@ -184,7 +189,8 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     sensor_prefix = std::string(ROOT) + std::string(record.at("sensor_prefix").as_string());
     detector_prefix = std::string(ROOT) + std::string(record.at("detector_prefix").as_string());
     image_prefix = std::string(ROOT) + std::string(record.at("image_prefix").as_string());
-    shot_prefix = std::string(ROOT) + std::string(record.at("image_prefix").as_string());
+    shot_prefix = std::string(ROOT) + std::string(record.at("shot_prefix").as_string());
+    video_prefix = std::string(ROOT) + std::string(record.at("video_prefix").as_string());
 
     sensor_fps = record.at("sensor_fps").as_integer();
     detector_fps = record.at("detector_fps").as_integer();
@@ -206,6 +212,11 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     const time_t cnow = std::chrono::system_clock::to_time_t(now);
     std::strftime(buffer, 20, "%m_%d_%H:%M", std::localtime(&cnow));
     asc_begin_time = buffer;
+
+    auto &debug_mode = robot_constants.at("debug_mode");
+    default_mode = debug_mode.at("default_mode").as_integer();
+
+
 
 }
 
@@ -238,6 +249,19 @@ string Args::get_log_path(int num, string prefix, int index){
         fs::create_directories(dirPath);
     }
     return std::string(path) + '/' + timestamp + to_string(index);
+}
+
+string Args::get_video_log_path(int num, int index){
+    auto now = std::chrono::system_clock::now();
+    auto t_c = std::chrono::system_clock::to_time_t(now);
+    char timestamp[20];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d_%H-%M", std::localtime(&t_c));
+    string path = video_prefix + param.cam_map.at(num);
+    fs::path dirPath = path;
+    if (!fs::exists(dirPath)) {
+        fs::create_directories(dirPath);
+    }
+    return std::string(path) + '/' + timestamp + "__" + to_string(index);
 }
 
 } // args
