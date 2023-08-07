@@ -288,7 +288,7 @@ bool Calculator::CalculatePnpLight(vector<Point> Mine2D_int, Mat& canvas)
         }
         putText(canvas, format("pitch:%.2f",eulerAngle2[1]), Point(0, 320), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
 
-        if(abs(eulerAngle2[3]) > 95){
+        if(abs(eulerAngle2[2]) > 95){
             logger.info("[YAW ERROR]:{}",eulerAngle2[2]);
             return false;
         }

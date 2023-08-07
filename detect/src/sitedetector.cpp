@@ -57,7 +57,7 @@ void Sitedetector::find_corner(Mat &img)
         drawContours(img, corner_contours, i, Scalar(0, 255, 0), 2, 8, corner_hierarchy, 0, Point());
         double G_avg = GetMeanValueInsideContour(img, corner_contours[i], 1);
 
-        if(area < 300) continue;
+        // if(area < 300) continue;
 
         putText(img, "rate:" + to_string(rate), corner_contours[i][0], FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);
         putText(img, "area:" + to_string(area), Point(corner_contours[i][0].x, corner_contours[i][0].y + 20), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 255), 2, 8);

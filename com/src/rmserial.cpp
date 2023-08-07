@@ -47,10 +47,14 @@ bool RmSerial::receive_data(uint8_t* p_data,int len){
     bool state = receive_buffer(len+5);
     if(!state) return false;
     static Logger logger("Receiver");
+    // cout<< "len:" << len <<endl;
+    // cout<< "rec_len:" << (int)buffer[4] << (int)buffer[5] << (char)buffer[6] << endl;
     if(len!= buffer[1]){
-        logger.critical("package length doesn't match!");
+        logger.warn("package length doesn't match!");
     }
-    if(buffer[0]!='s' || buffer[len+4]!='e') return false;
+    if(buffer[0]!='s' || buffer[len+4]!='e') {
+        return false;
+    }
     uint16_t crc_code;
     memcpy(&crc_code,buffer+len+2,2);
     if(crc_code != CRC16_calc(buffer+1,len+1)) {
