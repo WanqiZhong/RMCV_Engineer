@@ -51,9 +51,9 @@ void Sensor::Sensor_Run() {
             //     ecu_data = ecu_data_try.second;
             //     logger.info("camp:{} visual_flag:{} view:{} mode:{}",ecu_data.camp, ecu_data.visual_flag, ecu_data.view, ecu_data.mode);
             // } else {
-                ecu_data.view = param.operator_cam_index;
+                // ecu_data.view = param.operator_cam_index;
                 ecu_data.mode = param.default_mode;
-                ecu_data.visual_flag = 1;
+                // ecu_data.visual_flag = 1;
                 if(param.camp == -1){
                     ecu_data.camp = 0;
                 }
@@ -67,10 +67,7 @@ void Sensor::Sensor_Run() {
 
         // [DEBUG]
         ecu_data.mode = param.default_mode;
-        param.operator_cam_index = ecu_data.view % 4;
         param.camp = ecu_data.camp;
-        param.visual_status = ecu_data.visual_flag;
-        param.view = ecu_data.view;
 
         // Set mode when ecu data changed
         if(param.get_run_mode() != ecu_data.mode){
@@ -82,7 +79,6 @@ void Sensor::Sensor_Run() {
 
         // Set camera index
         vision_cap = cap_map.at(param.vision_cam_index);
-        operator_cap = cap_map.at(param.operator_cam_index);
 
         if (!vision_cap.isOpened()) {
             logger.error("Vision Camera is not opened");
@@ -98,15 +94,6 @@ void Sensor::Sensor_Run() {
      
         }
 
-        if (!operator_cap.isOpened()) {
-            logger.error("Operator Camera is not opened");
-        } else {
-            operator_cap >> operator_img;
-            if (!operator_img.empty()) {
-                imshow("operator_img", operator_img);
-                waitKey(1);
-            }
-        }
     }
 }
 

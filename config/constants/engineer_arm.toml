@@ -82,6 +82,6 @@ G_avg_max = 210
 
 
 [debug_mode]
-default_mode = 2
+default_mode = 0
 
 
