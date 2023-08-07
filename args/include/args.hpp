@@ -175,6 +175,8 @@ namespace args
         int site_max_area;
         float site_area_rate;
 
+        int default_mode;
+
         DebugArgs debug;
 
         Args(std::string, std::string, std::string);

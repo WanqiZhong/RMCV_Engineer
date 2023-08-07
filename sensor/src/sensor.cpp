@@ -52,7 +52,7 @@ void Sensor::Sensor_Run() {
             //     logger.info("camp:{} visual_flag:{} view:{} mode:{}",ecu_data.camp, ecu_data.visual_flag, ecu_data.view, ecu_data.mode);
             // } else {
                 ecu_data.view = param.operator_cam_index;
-                ecu_data.mode = 0;
+                ecu_data.mode = param.default_mode;
                 ecu_data.visual_flag = 1;
                 if(param.camp == -1){
                     ecu_data.camp = 0;
@@ -66,7 +66,7 @@ void Sensor::Sensor_Run() {
         }
 
         // [DEBUG]
-        ecu_data.mode = 0;
+        ecu_data.mode = param.default_mode;
         param.operator_cam_index = ecu_data.view % 4;
         param.camp = ecu_data.camp;
         param.visual_status = ecu_data.visual_flag;

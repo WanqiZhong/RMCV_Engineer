@@ -79,6 +79,6 @@ site_max_area = 12000.0
 site_area_rate = 0.7
 
 
-[debug]
-default_mode = 0
+[debug_mode]
+default_mode = 2
 

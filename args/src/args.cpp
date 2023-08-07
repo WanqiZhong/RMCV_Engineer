@@ -37,6 +37,7 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
 
     // Global
     std::string mode = local_config.at("run_mode").as_string();
+
     if (mode == "GOLD_MODE") {
         _run_mode = GoldMode;
     } else if (mode == "SILVER_MODE"){
@@ -210,6 +211,11 @@ Args::Args(std::string config_path, std::string local_config_path, std::string l
     const time_t cnow = std::chrono::system_clock::to_time_t(now);
     std::strftime(buffer, 20, "%m_%d_%H:%M", std::localtime(&cnow));
     asc_begin_time = buffer;
+
+    auto &debug_mode = robot_constants.at("debug_mode");
+    default_mode = debug_mode.at("default_mode").as_integer();
+
+
 
 }
 
