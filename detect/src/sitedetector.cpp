@@ -43,6 +43,9 @@ void Sitedetector::find_corner(Mat &img)
         inRange(thresh_output, Scalar(0, 0, 100), Scalar(180, 255, 255), thresh_output); // red
     }
 
+    Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
+    dilate(thresh_output, thresh_output, kernel);
+
     imshow("[FIND_CORNER_AFT]", thresh_output);
     findContours(thresh_output, corner_contours, corner_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
@@ -78,26 +81,26 @@ void Sitedetector::find_corner(Mat &img)
             valid_contour.push_back(corner_contours[i]);
             anchor_contour.push_back(corner_contours[i][0]);
 
-            // if (contourArea(corner_contours[i]) < min_corner_area)
-            // {
-            //     min_corner_area = contourArea(corner_contours[i]);
-            //     min_corner_index = i;
-            // }
+            if (contourArea(corner_contours[i]) < min_corner_area)
+            {
+                min_corner_area = contourArea(corner_contours[i]);
+                min_corner_index = i;
+            }
 
             corner_cnt++;
         }
     }
 
-    // if (!corner_contours.empty()){
-    //     // 得到最小面积角点（标志角点）的面积
-    //     // 使用理论上正方形小角点的外接矩形面积应当小于最小角点（标志角点）的面积
-    //     min_corner_rec = contourArea(corner_contours[min_corner_index]);
-    //     // RotatedRect rec = minAreaRect(corner_contours[min_corner_index]);
-    //     // 提取右上角标志角点的一个点单独储存，用于后续按顺序输出角点座标
-    //     square_contour.push_back(corner_contours[min_corner_index][0]);
-    //     putText(img, "square:" + to_string(corner_contours[min_corner_index][0].x) + "," + to_string(corner_contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
-    //     putText(img, "min_aera:"+to_string(min_corner_rec), Point(0, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
-    // }
+    if (!corner_contours.empty()){
+        // 得到最小面积角点（标志角点）的面积
+        // 使用理论上正方形小角点的外接矩形面积应当小于最小角点（标志角点）的面积
+        min_corner_rec = contourArea(corner_contours[min_corner_index]);
+        // RotatedRect rec = minAreaRect(corner_contours[min_corner_index]);
+        // 提取右上角标志角点的一个点单独储存，用于后续按顺序输出角点座标
+        square_contour.push_back(corner_contours[min_corner_index][0]);
+        putText(img, "square:" + to_string(corner_contours[min_corner_index][0].x) + "," + to_string(corner_contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+        putText(img, "min_aera:"+to_string(min_corner_rec), Point(0, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+    }
 
     logger.info("corner_cnt:{}",corner_cnt);
     imshow("[FIND_CORNER]", img);
@@ -157,76 +160,77 @@ void Sitedetector::find_anchor(Mat &img)
         }
     }
     draw_debug_ui(img, debug_ui);
-    imshow("debug_ui",img);
+    // imshow("debug_ui",img);
 
 }
 
 
 
-/// @brief find the L-shaped corner and the square corner of the exchange changesite
-/// @param img, the original picture
-/// @return void
-void Sitedetector::find_corner(Mat &img)
-{
-    vector<vector<Point>> corner_contours;
-    vector<Vec4i> corner_hierarchy;
-    double min_corner_area = 10000; // 记录当前最小的面积
-    min_corner_index = 0; corner_cnt = 0;
+// /// @brief find the L-shaped corner and the square corner of the exchange changesite
+// /// @param img, the original picture
+// /// @return void
+// void Sitedetector::find_corner(Mat &img)
+// {
+//     vector<vector<Point>> corner_contours;
+//     vector<Vec4i> corner_hierarchy;
+//     double min_corner_area = 10000; // 记录当前最小的面积
+//     min_corner_index = 0; corner_cnt = 0;
 
 
-    cvtColor(img, thresh_output, COLOR_BGR2HSV);
+//     cvtColor(img, thresh_output, COLOR_BGR2HSV);
 
-    if (param.camp == 0)
-        inRange(thresh_output, Scalar(0, 0, 100), Scalar(180, 255, 255), thresh_output); // red
-    else{
-        inRange(thresh_output, Scalar(0, 0, 100), Scalar(180, 255, 255), thresh_output); // red
-    }
+//     if (param.camp == 0)
+//         inRange(thresh_output, Scalar(0, 0, 100), Scalar(180, 255, 255), thresh_output); // red
+//     else{
+//         inRange(thresh_output, Scalar(0, 0, 100), Scalar(180, 255, 255), thresh_output); // red
+//     }
 
-    imshow("[FIND_CORNER_AFT]", thresh_output);
-    findContours(thresh_output, corner_contours, corner_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+//     imshow("[FIND_CORNER_AFT]", thresh_output);
+//     findContours(thresh_output, corner_contours, corner_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
-    for (int i = 0; i < corner_contours.size(); i++)
-    {
-        RotatedRect rec = minAreaRect(corner_contours[i]);
-        double rate = float(rec.size.width) / rec.size.height;
-        double area = float(rec.size.width) * rec.size.height;
+//     for (int i = 0; i < corner_contours.size(); i++)
+//     {
+//         RotatedRect rec = minAreaRect(corner_contours[i]);
+//         double rate = float(rec.size.width) / rec.size.height;
+//         double area = float(rec.size.width) * rec.size.height;
 
-        if (rate >= param.site_min_rate && rate <= param.site_max_rate && \
-            area >= param.site_min_area && area <= param.site_max_area && \
-            contourArea(corner_contours[i]) / area <= param.site_area_rate){
+//         if (rate >= param.site_min_rate && rate <= param.site_max_rate && \
+//             area >= param.site_min_area && area <= param.site_max_area && \
+//             contourArea(corner_contours[i]) / area <= param.site_area_rate){
 
-            for (const auto & j : corner_contours[i]){
-                all_contours.push_back(j);
-            }
-            valid_contour.push_back(corner_contours[i]);
-            anchor_contour.push_back(corner_contours[i][0]);
+//             for (const auto & j : corner_contours[i]){
+//                 all_contours.push_back(j);
+//             }
+//             valid_contour.push_back(corner_contours[i]);
+//             anchor_contour.push_back(corner_contours[i][0]);
 
-            if (contourArea(corner_contours[i]) < min_corner_area)
-            {
-                min_corner_area = contourArea(corner_contours[i]);
-                min_corner_index = i;
-            }
+//             if (contourArea(corner_contours[i]) < min_corner_area)
+//             {
+//                 min_corner_area = contourArea(corner_contours[i]);
+//                 min_corner_index = i;
+//             }
 
-            corner_cnt++;
-        }
-    }
+//             corner_cnt++;
+//         }
+//     }
 
-    if (!corner_contours.empty()){
-        // 得到最小面积角点（标志角点）的面积
-        // 使用理论上正方形小角点的外接矩形面积应当小于最小角点（标志角点）的面积
-        min_corner_rec = contourArea(corner_contours[min_corner_index]);
-        // RotatedRect rec = minAreaRect(corner_contours[min_corner_index]);
-        // 提取右上角标志角点的一个点单独储存，用于后续按顺序输出角点座标
-        square_contour.push_back(corner_contours[min_corner_index][0]);
-        putText(img, "square:" + to_string(corner_contours[min_corner_index][0].x) + "," + to_string(corner_contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
-        putText(img, "min_aera:"+to_string(min_corner_rec), Point(0, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
-    }
+//     if (!corner_contours.empty()){
+//         // 得到最小面积角点（标志角点）的面积
+//         // 使用理论上正方形小角点的外接矩形面积应当小于最小角点（标志角点）的面积
+//         min_corner_rec = contourArea(corner_contours[min_corner_index]);
+//         // RotatedRect rec = minAreaRect(corner_contours[min_corner_index]);
+//         // 提取右上角标志角点的一个点单独储存，用于后续按顺序输出角点座标
+//         square_contour.push_back(corner_contours[min_corner_index][0]);
+//         putText(img, "square:" + to_string(corner_contours[min_corner_index][0].x) + "," + to_string(corner_contours[min_corner_index][0].y), Point(0, 30), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+//         putText(img, "min_aera:"+to_string(min_corner_rec), Point(0, 60), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+//     }
 
-}
+// }
 
 
-void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contours, DebugUI &debug_ui, int index){
+void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contours, const vector<vector<Point>>& four_station_contour, DebugUI &debug_ui, int index){
 
+    
     vector<vector<Point>> temp_anchor_point;
     vector<double> distance = vector<double>(4, 0);
     vector<Point> anchor_temp;
@@ -238,12 +242,19 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
     int min_index = 0;
     cv::Point2f vertices[4];
     Mat anchor_mask;
+    square_contour.clear();
+
+    // Mat convecHull_img = Mat::zeros(img.size(), CV_8UC3);
+    // drawContours(convecHull_img, four_station_contour, -1, Scalar(255), -1);
+    // Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
+    // dilate(convecHull_img, convecHull_img, kernel);
+    // findContours(convecHull_img, four_station_contours, anchor_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
     convexHull(Mat(four_station_contours), anchor_hull, false);
     approxPolyDP(anchor_hull, anchor_poly, 25, true);
 
     anchor_mask = Mat::zeros(thresh_output.size(), CV_8UC1);
-    fillPoly(anchor_mask, anchor_poly, Scalar(255, 255, 255));
+    fillPoly(anchor_mask, anchor_hull, Scalar(255, 255, 255));
     thresh_output.copyTo(anchor_mask, anchor_mask);
 
     if(anchor_poly.size() != 4){
@@ -251,24 +262,57 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
         return;
     }
 
+    vector<Point> min_contour;
+    RotatedRect min_rect;
     min_corner_rec = 100000;
     for(auto & contour : four_station_contour){
         double area = contourArea(contour);
-        if (area < min_corner_rec && area > 50){
+        if (area < min_corner_rec && area > 60){
             min_corner_rec = area;
+            min_contour = contour;
         }
     }
 
     findContours(anchor_mask, anchor_contours, anchor_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
     for (auto & contour : anchor_contours)
     {
+        // double area = contourArea(contour);
         RotatedRect rec = minAreaRect(contour);
         double area = float(rec.size.width) * float(rec.size.height);
-        if (area < min_corner_rec && area > 50)
+        if (area < min_corner_rec && area > 60)
         {
+            min_rect = rec;
             square_contour.clear();
             square_contour.push_back(contour[0]);
         }
+    }
+
+    // drawContours(img, vector<vector<Point>>{min_contour}, -1, Scalar(255, 0, 255), 2);
+    // Point2f rect_points[4];
+    // min_rect.points(rect_points);
+    
+    // for(auto& square_con: square_contour){
+    //     circle(img, square_con, 5, Scalar(255, 255, 255), 5);
+    // }
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     line(img, rect_points[i], rect_points[(i + 1) % 4], Scalar(255, 0, 0), 2, 8);
+    // }   
+    
+    // logger.critical("min_rect.center.x:{}, min_rect.center.y:{}", min_rect.center.x, min_rect.center.y);
+    // logger.critical("min_rect.size.width:{}, min_rect.size.height:{}", min_rect.size.width, min_rect.size.height);
+    
+    // polylines(img, anchor_hull, true, Scalar(0, 255, 0), 2, 8, 0);
+    // imshow("[square_contour]", img);
+    // waitKey(0);
+
+
+    if(square_contour.empty()){
+        return;
+    }
+
+    if(min_rect.center.x == 0 && min_rect.center.y == 0){
+        return;
     }
 
     if(!square_contour.empty()){

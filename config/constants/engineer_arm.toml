@@ -16,10 +16,8 @@ recv_id = 0x002
 [sensor]
 [sensor.camera]
 serial_number = ""
-exposure_time_mine = 10.0
-exposure_time_exchangesite = 10.0
 exposure_time_mine = 12.0
-exposure_time_exchangesite = 3.0
+exposure_time_exchangesite = 6.0
 frame_rate = 60
 frame_width = 1280
 frame_height = 720
@@ -75,7 +73,7 @@ match_rate = 0.65 #poly面积与外接矩形面积之比
 
 
 [traditional.changesite]
-site_min_rate = 0.25
+site_min_rate = 0.20
 site_max_rate = 4.0
 site_min_area = 200.0
 site_max_area = 20000.0

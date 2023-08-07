@@ -98,7 +98,7 @@ void Detectormanager::UpdateParam()
     param.area_ratio_thres_min = gold.at("area_ratio_thres_min").as_floating();
     param.corner_contour_area_min = gold.at("corner_contour_area_min").as_integer();
     param.corner_contour_area_max = gold.at("corner_contour_area_max").as_integer();
-    param.corner_rec_area_max = gold.at("corner_rec_area_max").as_integer();
+    param.corner_rec_area_min = gold.at("corner_rec_area_min").as_integer();
     
     param.site_min_rate = changesite.at("site_min_rate").as_floating();
     param.site_max_rate = changesite.at("site_max_rate").as_floating();

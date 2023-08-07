@@ -296,7 +296,7 @@ bool Calculator::CalculatePnpLight(vector<Point> Mine2D_int, Mat& canvas)
         return true;
         
     }catch (const std::exception& e){
-        logger.error("[Cali] solvePnP error:{}",e.what());
+        logger.info("[Cali] solvePnP error.");
         return false;
     }   
     
