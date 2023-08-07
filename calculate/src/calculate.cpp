@@ -160,17 +160,17 @@ void Calculator::CalculatePnp()
     vector<Point3f> Mine3D;
     vector<Point2f> Mine2D;
     Mine3D.clear();
-    // if(param.get_run_mode() == GoldMode){
-    //     Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,0));
-    //     Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,0));
-    //     Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,0));
-    //     Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,0));
-    // }
-    // else if(param.get_run_mode() == ExchangeSiteMode){
-    Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,200));
-    Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,200));
-    Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,200));
-    Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,200));
+    if(param.get_run_mode() == ExchangeSiteMode){
+        Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,200));
+        Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,200));
+        Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,200));
+        Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,200));
+    }else{
+        Mine3D.push_back(Point3f(MINE_HALF_LENGTH,MINE_HALF_LENGTH,0));
+        Mine3D.push_back(Point3f(MINE_HALF_LENGTH,-MINE_HALF_LENGTH,0));
+        Mine3D.push_back(Point3f(-MINE_HALF_LENGTH,-MINE_HALF_LENGTH,0));
+        Mine3D.push_back(Point3f(-MINE_HALF_LENGTH,MINE_HALF_LENGTH,0));
+    }
     // }
     Mat rvec = Mat::zeros(3,1,CV_64FC1);
     Mat tvec = Mat::zeros(3,1,CV_64FC1);

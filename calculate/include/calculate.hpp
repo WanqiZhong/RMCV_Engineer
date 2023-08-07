@@ -29,6 +29,7 @@ using namespace cv;
 
 const float LENGTH = 275;
 const float HALF_LENGTH = 275.0 / 2;
+const float MINE_HALF_LENGTH = 100.0;
 
 #define Laptop
 
