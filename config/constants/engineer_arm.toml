@@ -74,7 +74,7 @@ match_rate = 0.65 #poly面积与外接矩形面积之比
 [traditional.changesite]
 site_min_rate = 0.3
 site_max_rate = 3.0
-site_min_area = 400.0
+site_min_area = 200.0
 site_max_area = 12000.0
 site_area_rate = 0.7
 
