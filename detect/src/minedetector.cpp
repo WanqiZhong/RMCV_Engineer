@@ -49,14 +49,10 @@ void Minedetector::drawLine(Mat &img,            // 要标记直线的图像
     }
 }
 
-void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_point)
+void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& armors)
 {
     enhance_img(img);
     Mat canvas = img.clone();
-    logger.critical("Get a new canvas {}", anchor_point.size());
-    if(!anchor_point.empty()){
-       logger.warn("{}", anchor_point[0][0].x);
-    }
     
     Mat gray_img; 
     cvtColor(img, gray_img, COLOR_BGR2GRAY);
@@ -68,10 +64,11 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_po
     // 反色，黑色换白色
     imshow("all_threshold", gray_img);
 
-    if(!anchor_point.empty()){
+    if(!armors.empty()){
         // auto mine_side = anchor_point[0];
-        for (auto &mine_side : anchor_point)
+        for (int k = 0; k < armors.size(); ++k)
         {
+            auto mine_side = armors[k];
             auto all_start = chrono::steady_clock::now();
             int x = 0;
             int y = 0;
@@ -104,6 +101,9 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_po
                 }catch(exception e){
                     logger.critical("Unvalid rect:{},{},{},{}",x, y, x_max - x, y_max - y);
                     continue;
+                } 
+                if(t == 2){
+                    square_contour.push_back(mine_side[2]);
                 }
 
                 // auto start = std::chrono::system_clock::now();
@@ -115,27 +115,29 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& anchor_po
                 // imshow("img_aft_mask", img_ori);
                 // waitKey(1);
                 // Get the current time
-                auto start = std::chrono::system_clock::now();
+                // auto start = std::chrono::system_clock::now();
                 // Mat new_canvas = canvas.clone();
                 get_main_corner_withnet(img_rect, canvas, mine_side, t, bound_big_x, bound_big_y);
                 // Get the elapsed time since the start
-                auto elapsed = std::chrono::system_clock::now() - start;
+                // auto elapsed = std::chrono::system_clock::now() - start;
                 // Get the number of milliseconds elapsed and print it
-                auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+                // auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
                 // logger.critical("Time taken to get corner: {} ms", ms);
                 imshow("[get_main_corner]", canvas);
                 waitKey(1);
 
-                auto all_elapsed = chrono::steady_clock::now() - all_start;
-                auto all_ms = chrono::duration_cast<chrono::milliseconds>(all_elapsed).count();
+                // auto all_elapsed = chrono::steady_clock::now() - all_start;
+                // auto all_ms = chrono::duration_cast<chrono::milliseconds>(all_elapsed).count();
                 // logger.critical("Time taken to get all corner: {} ms", all_ms);
             }
-            auto start = std::chrono::system_clock::now();
+            // auto start = std::chrono::system_clock::now();
             drawContours(canvas, valid_contours, -1, Scalar(255), -1);
             writeImageRaw(333,canvas);
             find_anchor(canvas);
-            auto elapsed = std::chrono::system_clock::now() - start;
-            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+            if(anchor_point.size() > k)
+                reverse(anchor_point[k].begin(), anchor_point[k].end());
+            // auto elapsed = std::chrono::system_clock::now() - start;
+            // auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
             // logger.critical("Time taken to find anchor: {} ms", ms);
         }          
     }
@@ -551,10 +553,10 @@ void Minedetector::find_anchor(Mat &img)
                                 temp_station_contours.push_back(q);
                             }
                         }
-                        auto start = chrono::steady_clock::now();
+                        // auto start = chrono::steady_clock::now();
                         get_anchor(img, temp_station_contours, debug_ui, valid_index++);
-                        auto elapsed = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
-                        logger.info("get_single_anchor time:{}", elapsed.count());
+                        // auto elapsed = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - start);
+                        // logger.info("get_single_anchor time:{}", elapsed.count());
                     }
                 }
             }
@@ -597,7 +599,7 @@ void Minedetector::get_anchor(Mat &img, const vector<Point> &four_station_contou
         }
         for (int i = 0; i < 4; ++i)
         {
-            anchor_temp.push_back(anchor_poly[(min_index + i + 2) % 4]);
+            anchor_temp.push_back(anchor_poly[(min_index + i + 3) % 4]);
         }
         temp_anchor_point.push_back(anchor_temp);
     }
@@ -626,10 +628,10 @@ void Minedetector::get_anchor(Mat &img, const vector<Point> &four_station_contou
     if ( poly_area / res_area > debug_ui.match_rate && poly_area >= param.poly_area && res_rate < param.res_rate)
     {
         logger.warn("match rate:{}", poly_area / res_area);
+        this->anchor_point.clear();
+        logger.warn("temp_anchor_point size:{}", temp_anchor_point.size());
         if(!temp_anchor_point.empty())
-            anchor_point.push_back(temp_anchor_point[0]);
-
-        // cout << "(in)anchor_point.size:" << anchor_point.size() << endl;
+            this->anchor_point.push_back(temp_anchor_point[0]);
         debug_ui.match_rate = poly_area / res_area;
         debug_ui.poly = anchor_poly;
         debug_ui.area = res_area;
@@ -645,7 +647,7 @@ void Minedetector::get_anchor(Mat &img, const vector<Point> &four_station_contou
         else
         {
             debug_ui.right_flag = true;
-            cout << "right_flag:" << debug_ui.right_flag <<endl;
+            // cout << "right_flag:" << debug_ui.right_flag <<endl;
         }
     }
 }
@@ -669,6 +671,7 @@ void Minedetector::draw_debug_ui(Mat &img, DebugUI &debug_ui)
     if (debug_ui.right_flag)
     {
         putText(img, "Right!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 255, 0), 2, 5);
+        putText(img, "anchor_size:" + to_string(anchor_point.size()), Point(0, 300), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 2, 5);
     }
     else
     {
