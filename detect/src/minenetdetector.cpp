@@ -29,36 +29,38 @@ void Minenetdetector::DetectorNet_Run()
         cv::Mat ori_img = img.clone();
         anchor_point.clear();
         if(!img.empty()){
-            cv::Mat new_image = pad_image(img, cv::Size(640, 640));
-            cv::Mat canvas;
-            std::vector<float> blob(640*640*3);
-            cv::resize(img, canvas, cv::Size(640, int(640*(float)(img.rows)/img.cols)));
-            img2blob(new_image, blob);
-            std::vector<armor::Armor> detections = detect(blob);
-            double scale = param.frame_width / 640.0;
+            if(param.get_run_mode() == GoldMode)
+            {
+                cv::Mat new_image = pad_image(img, cv::Size(640, 640));
+                cv::Mat canvas;
+                std::vector<float> blob(640*640*3);
+                cv::resize(img, canvas, cv::Size(640, int(640*(float)(img.rows)/img.cols)));
+                img2blob(new_image, blob);
+                std::vector<armor::Armor> detections = detect(blob);
+                double scale = param.frame_width / 640.0;
 
-            const float threshold = 0.4;
-            detections.erase(std::remove_if(detections.begin(), detections.end(), [&](const armor::Armor& armor) {
-                return armor.conf < threshold;
-            }), detections.end());
+                const float threshold = 0.4;
+                detections.erase(std::remove_if(detections.begin(), detections.end(), [&](const armor::Armor& armor) {
+                    return armor.conf < threshold;
+                }), detections.end());
 
-            sort(detections.begin(), detections.end(), [](armor::Armor a, armor::Armor b) {
-                return a.conf > b.conf;
-            });
-            
-            for(int i = 0; i < detections.size(); ++i){
-                vector<cv::Point> pts;
-                for(int j = 0; j < 4; ++j)
-                {
-                    detections[i].pts[j].x =  detections[i].pts[j].x * scale;
-                    detections[i].pts[j].y =  detections[i].pts[j].y * scale;
-                    pts.push_back(detections[i].pts[j]);
+                sort(detections.begin(), detections.end(), [](armor::Armor a, armor::Armor b) {
+                    return a.conf > b.conf;
+                });
+                
+                for(int i = 0; i < detections.size(); ++i){
+                    vector<cv::Point> pts;
+                    for(int j = 0; j < 4; ++j)
+                    {
+                        detections[i].pts[j].x =  detections[i].pts[j].x * scale;
+                        detections[i].pts[j].y =  detections[i].pts[j].y * scale;
+                        pts.push_back(detections[i].pts[j]);
+                    }
+                    anchor_point.push_back(pts);
                 }
-                anchor_point.push_back(pts);
+                logger.info("Armor_size: {}", detections.size());
+                draw(img, detections);
             }
-            
-            logger.info("Armor_size: {}", detections.size());
-            draw(img, detections);
             img_pub.push(ori_img);
             pub.push(anchor_point);
         }

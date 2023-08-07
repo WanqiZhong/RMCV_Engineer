@@ -35,7 +35,7 @@ void Detectormanager::Manager_Run()
                         detector = make_shared<Minedetector>();
                         break;
                     default:
-                        detector = make_shared<Minedetector>();
+                        detector = make_shared<Sitedetector>();
                         break;
                 }
         }

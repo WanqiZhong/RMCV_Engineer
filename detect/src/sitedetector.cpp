@@ -110,6 +110,7 @@ void Sitedetector::find_corner(Mat &img)
         RotatedRect rec = minAreaRect(corner_contours[i]);
         double rate = float(rec.size.width) / rec.size.height;
         double area = float(rec.size.width) * rec.size.height;
+        
 
         if (rate >= param.site_min_rate && rate <= param.site_max_rate && \
             area >= param.site_min_area && area <= param.site_max_area && \
@@ -150,6 +151,7 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
     vector<vector<Point>> temp_anchor_point;
     vector<double> distance = vector<double>(4, 0);
     vector<Point> anchor_temp;
+    vector<Point> anchor_temp_reverse;
     vector<Point> anchor_hull;
     vector<Point> anchor_poly;
     vector<vector<Point>> anchor_contours;
@@ -195,9 +197,22 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
         temp_anchor_point.push_back(anchor_temp);
     }
 
+    Mat canvas = img.clone();
+    anchor_temp_reverse = anchor_temp;
+    reverse(anchor_temp_reverse.begin(), anchor_temp_reverse.end());
+    calculator.CalculatePnpLight(anchor_temp_reverse, canvas);
+
     RotatedRect res_rect = minAreaRect(anchor_poly);
     double res_area = res_rect.size.width * res_rect.size.height;
     double poly_area = contourArea(anchor_poly);
+    double wh_rate = res_rect.size.height / res_rect.size.width;
+    if(wh_rate < 1 && wh_rate != 0){
+        wh_rate = 1 / wh_rate;
+    }
+    if(wh_rate > 3){
+        return;
+    }
+    
 
     polylines(img, anchor_poly, true, Scalar(255, 0, 0), 2, 8, 0);
     putText(img, "match_rate:"+to_string(poly_area / res_area), anchor_poly[min_index] , FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 5);
@@ -206,6 +221,7 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
     for (int i = 0; i < 4; ++i){
         line(img, vertices[i], vertices[(i + 1) % 4], Scalar(255, 0, 0));
     }
+
     writeImageRaw(index, img);
 
     if(poly_area / res_area > debug_ui.match_rate){
@@ -247,6 +263,7 @@ void Sitedetector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
     }
     putText(img, "area:"+to_string(debug_ui.area), Point(0, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
     putText(img, "rate:"+to_string(debug_ui.match_rate), Point(0, 150), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
+    calculator.CalculatePnpLight(anchor_point[0],img);
     if(debug_ui.right_flag){
         putText(img, "Right!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 255, 0), 2, 5);
     }else{

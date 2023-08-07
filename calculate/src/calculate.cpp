@@ -15,7 +15,6 @@ void Calculator::Join()
 
 void Calculator::Calculate_Run()
 {
-    CalculateInit();
     umt::Subscriber<MINE_POSITION_MSG> mine_sub("anchor_point_data");
     umt::Publisher<ANGLE_DATA_MSG> angle_pub("robot_data");
     while(param.get_run_mode()!=HALT)
@@ -116,7 +115,7 @@ void Calculator::Calculate_Run()
     }
 }
 
-void Calculator::CalculateInit()
+Calculator::Calculator()
 {
 //   Eigen::Matrix<double, 3, 3> F;
 //   Eigen::Matrix<double, 1, 5> C;
@@ -141,6 +140,7 @@ void Calculator::CalculateInit()
     DistCoeffs = (Mat_<double>(1,5) <<  -0.05640793647468217, 0.13839932739052765, 0.0008973923147196129, 0.0006277720031867564, -0.11738628647273942);
     
     
+
     // CameraMatrix = (Mat_<double>(3,3) << 887.2491874026911, 0.0, 622.2122954082711,
     //         0.0, 888.0495172048629, 381.3741434010061,
     //         0.0, 0.0, 1.0);
@@ -151,8 +151,6 @@ void Calculator::CalculateInit()
     //                                     0.0, 0.0, 1.0);
     // DistCoeffs = (Mat_<double>(1,5) << -0.03900241043569671, 0.07901858897325609, 0.0012754337138536477, 0.0005857123595320316, -0.06278245602713038);
 }
-
-
 
 
 void Calculator::CalculatePnp()
@@ -239,6 +237,71 @@ void Calculator::CalculatePnp()
 }
 
 
+
+bool Calculator::CalculatePnpLight(vector<Point> Mine2D_int, Mat& canvas)
+{
+    vector<Point2f> Mine2D = vector<Point2f>(Mine2D_int.begin(),Mine2D_int.end());
+    vector<Point3f> Mine3D;
+    Mine3D.clear();
+    if(param.get_run_mode() == ExchangeSiteMode){
+        Mine3D.push_back(Point3f(-HALF_LENGTH,-HALF_LENGTH,200));
+        Mine3D.push_back(Point3f(-HALF_LENGTH,HALF_LENGTH,200));
+        Mine3D.push_back(Point3f(HALF_LENGTH,HALF_LENGTH,200));
+        Mine3D.push_back(Point3f(HALF_LENGTH,-HALF_LENGTH,200));
+    }else{
+        Mine3D.push_back(Point3f(-MINE_HALF_LENGTH,-MINE_HALF_LENGTH,0));
+        Mine3D.push_back(Point3f(-MINE_HALF_LENGTH,MINE_HALF_LENGTH,0));
+        Mine3D.push_back(Point3f(MINE_HALF_LENGTH,MINE_HALF_LENGTH,0));
+        Mine3D.push_back(Point3f(MINE_HALF_LENGTH,-MINE_HALF_LENGTH,0));
+    }
+    Mat rvec = Mat::zeros(3,1,CV_64FC1);
+    Mat tvec = Mat::zeros(3,1,CV_64FC1);
+    Mat rotMat = Mat::zeros(3,1,CV_64FC1);
+    Mat cvPosition = Mat::zeros(3,1,CV_64FC1);
+    Eigen::Matrix<double, 3, 3> R;
+    Eigen::Matrix<double, 3, 1> T;
+        
+    try{
+        solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec,false,SOLVEPNP_IPPE);
+
+        cv::cv2eigen(tvec, T);
+        rvec = final_Rvec * rvec;
+        Rodrigues(rvec, rotMat);
+        cv::cv2eigen(rotMat, R);
+
+        Eigen::Vector3d eulerAngle2 = rotationMatrixToEulerAngles(R);
+        eulerAngle2 = eulerAngle2 / M_PI * 180.0;
+        logger.info("[Cali] roll:{} pitch:{} yaw:{}",eulerAngle2[0],eulerAngle2[1],eulerAngle2[2]);
+
+        putText(canvas, format("roll:%.2f",eulerAngle2[0]), Point(0, 300), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2);
+        putText(canvas, format("pitch:%.2f",eulerAngle2[1]), Point(0, 320), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2);
+        putText(canvas, format("yaw:%.2f",eulerAngle2[2]), Point(0, 340), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2);
+
+        if(abs(eulerAngle2[0]) > 50){
+            logger.info("[ROLL ERROR]:{}",eulerAngle2[0]);
+            return false;
+        }
+        putText(canvas, format("roll:%.2f",eulerAngle2[0]), Point(0, 300), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+
+        if(eulerAngle2[1] > 65 || eulerAngle2[1] < -15){
+            logger.info("[PITCH ERROR]:{}",eulerAngle2[1]);
+            return false;
+        }
+        putText(canvas, format("pitch:%.2f",eulerAngle2[1]), Point(0, 320), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+
+        if(abs(eulerAngle2[3]) > 95){
+            logger.info("[YAW ERROR]:{}",eulerAngle2[2]);
+            return false;
+        }
+        putText(canvas, format("yaw:%.2f",eulerAngle2[2]), Point(0, 340), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
+        return true;
+        
+    }catch (const std::exception& e){
+        logger.error("[Cali] solvePnP error:{}",e.what());
+        return false;
+    }   
+    
+}
 
 bool Calculator::isRotationMatirx(Eigen::Matrix3d R)
 {

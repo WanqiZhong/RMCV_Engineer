@@ -134,7 +134,7 @@ void Sensor::writeVideoRaw(cv::Mat &img) {
     for(auto num: param.writer_set){
         VideoWriter videoWriter = writer_map.at(num);
         videoWriter.write(img);
-        logger.warn("Write video to {}", param.get_video_log_path(num, 0) + ".mp4");
+        // logger.warn("Write video to {}", param.get_video_log_path(num, 0) + ".mp4");
         if (frame_index++ >= 300) {
             frame_index = 0;
             videoWriter.release();

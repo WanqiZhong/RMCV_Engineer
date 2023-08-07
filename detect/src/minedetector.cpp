@@ -11,15 +11,15 @@ void Minedetector::Detector_Run(Mat &img)
     umt::Subscriber<std::vector<std::vector<cv::Point>>> sub("Armor");
     vector<vector<Point>> armors;
     anchor_point.clear();
-    // logger.critical("Waiting for UMT::[Armor]");
     armors = sub.pop();
     logger.info("armors size:{}", armors.size());
     if(!armors.empty()){
         get_corner_withnet(img, armors);
     }    
-    // if(!first_points.empty() && !third_points.empty()){
-    //     find_corner(img);
-    // }
+    if(anchor_point.empty()){
+       logger.critical("Use net result!");
+       anchor_point = armors; 
+    }
 }
 void Minedetector::drawLine(Mat &img,            // 要标记直线的图像
                             vector<Vec2f> lines, // 检测的直线数据
