@@ -43,7 +43,7 @@ void Basedetector::img_light_enhance(Mat &img, Mat &img_hsv){
 
         merge(hsv_channels, img);
         cvtColor(img, img, COLOR_HSV2BGR);
-        imshow("[IMG_LIGHT_ENHANCE_BEF]", img);
+        // imshow("[IMG_LIGHT_ENHANCE_BEF]", img);
 
         cvtColor(img, img, COLOR_BGR2HSV);
         inRange(img,Scalar(hmin,smin,vmin),Scalar(hmax,smax,vmax),color_mask);
@@ -98,7 +98,7 @@ void Basedetector::img_light_enhance(Mat &img, Mat &img_hsv){
         logger.info("[IMG_LIGHT_ENHANCE_AFT] avg_v: {}, v_sum: {}", avg_v, v_sum);
 
         cvtColor(img, img, COLOR_HSV2BGR);
-        imshow("[IMG_LIGHT_ENHANCE_AFT]", img);
+        // imshow("[IMG_LIGHT_ENHANCE_AFT]", img);
 
         cvtColor(img, img_hsv, COLOR_BGR2HSV);
         inRange(img_hsv,Scalar(hmin,smin,vmin),Scalar(hmax,smax,vmax),img_hsv);

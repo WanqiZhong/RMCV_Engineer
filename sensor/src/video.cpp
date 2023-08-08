@@ -34,7 +34,7 @@ void Video::Video_Run() {
     while (param.get_run_mode() != HALT){
         if(param.image_read){
             if (!vision_img.empty()) {
-                imshow("vision_img", vision_img);
+                // imshow("vision_img", vision_img);
                 waitKey(1);
                 pub.push(vision_img.clone());
             }
@@ -45,7 +45,7 @@ void Video::Video_Run() {
                 } else {
                     vision_cap >> vision_img;
                     if (!vision_img.empty()) {
-                        imshow("vision_img", vision_img);
+                        // imshow("vision_img", vision_img);
                         waitKey(1);
                         pub.push(vision_img.clone());
                     }

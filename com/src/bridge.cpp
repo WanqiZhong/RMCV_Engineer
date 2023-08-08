@@ -103,11 +103,11 @@ void can_receive(){
         double time_stamp = std::chrono::duration<double>(std::chrono::steady_clock::now()- param.begin_time).count();
         data.time_stamp = time_stamp;
         auto mode = cast_run_mode(data.mode);
-        if (mode != last_mode)
-        {
-            last_mode = mode;
-            param.set_run_mode(mode);
-        }
+        // if (mode != last_mode)
+        // {
+        //     last_mode = mode;
+        //     param.set_run_mode(mode);
+        // }
         if(id==receive_id) {
             receive_pub.push(data);
         }
@@ -189,11 +189,11 @@ void serial_receive(){
             continue;
         }
         auto mode = cast_run_mode(data.mode);
-        if (mode != last_mode)
-        {
-            last_mode = mode;
-            param.set_run_mode(mode);
-        }
+        // if (mode != last_mode)
+        // {
+        //     last_mode = mode;
+        //     param.set_run_mode(mode);
+        // }
         double time_stamp = std::chrono::duration<double>(std::chrono::steady_clock::now()- param.begin_time).count();
         // logger.info("{},{},{},{}",data.x,data.y,data.z,data.mode);
         // logger.info("cam_id:{},position_id:{},mode:{}",data.cam_id,data.position_id,data.mode);

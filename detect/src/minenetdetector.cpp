@@ -135,7 +135,7 @@ void Minenetdetector::get_corner_withnet(Mat &img)
     }
     logger.info("get corner with net");
     get_mask(img, mask);
-    imshow("mask", mask);
+    // imshow("mask", mask);
     waitKey(1);
 }
 
@@ -343,7 +343,7 @@ void Minenetdetector::draw(cv::Mat img, const std::vector<armor::Armor> &objects
         cv::putText(img, text, cv::Point(x, y + label_size.height),
                     cv::FONT_HERSHEY_SIMPLEX, 0.4, txt_color, 1);
     }
-    cv::imshow("[NET]",img);
+    cv::// imshow("[NET]",img);
     waitKey(1);
 }
 

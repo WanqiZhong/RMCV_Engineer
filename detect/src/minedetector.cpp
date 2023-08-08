@@ -62,7 +62,7 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& armors)
     // 膨胀
     dilate(gray_img, gray_img, kernel);
     // 反色，黑色换白色
-    imshow("all_threshold", gray_img);
+    // imshow("all_threshold", gray_img);
 
     if(!armors.empty()){
         // auto mine_side = anchor_point[0];
@@ -111,8 +111,8 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& armors)
                 // auto elapsed = std::chrono::system_clock::now() - start;
                 // auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
                 // logger.critical("Time taken to get mask: {} ms", ms);
-                // // imshow("mask", mask);
-                // imshow("img_aft_mask", img_ori);
+                // // // imshow("mask", mask);
+                // // imshow("img_aft_mask", img_ori);
                 // waitKey(1);
                 // Get the current time
                 // auto start = std::chrono::system_clock::now();
@@ -123,7 +123,7 @@ void Minedetector::get_corner_withnet(Mat &img, vector<vector<Point>>& armors)
                 // Get the number of milliseconds elapsed and print it
                 // auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
                 // logger.critical("Time taken to get corner: {} ms", ms);
-                imshow("[get_main_corner]", canvas);
+                // imshow("[get_main_corner]", canvas);
                 waitKey(1);
 
                 // auto all_elapsed = chrono::steady_clock::now() - all_start;
@@ -158,7 +158,7 @@ void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>&
     // 膨胀
     dilate(gray_img, gray_img, kernel);
     // 反色，黑色换白色
-    imshow("threshold", gray_img);
+    // imshow("threshold", gray_img);
     findContours(gray_img, contours, RETR_EXTERNAL, CHAIN_APPROX_NONE);
     // cout << "contours size:" << contours.size() << endl;
     // while (corner_cnt <= 1 && ratio_thres >= param.ratio_thres_min && area_ratio_thres >= param.area_ratio_thres_min)
@@ -324,7 +324,7 @@ void Minedetector::get_main_corner_withnet(Mat &img, Mat &canvas, vector<Point>&
         // logger.info("ratio_thres:{}", ratio_thres);
         // logger.info("area_ratio_thres:{}", area_ratio_thres);
     // }
-    // imshow("canny", canny);
+    // // imshow("canny", canny);
     // waitKey(1);
     sort(min_distance_contours.begin(),min_distance_contours.end(),[](CornerContour a, CornerContour b){
         return a.distance < b.distance;
@@ -401,15 +401,15 @@ void Minedetector::perspective_transformation(const vector<Point2f> &final_point
     Mat status;
     Mat h = findHomography(m1, m2, status, 0, 3);
     cout << "h: " << h << endl;
-    // imshow("src",src);
+    // // imshow("src",src);
     perspectiveTransform(srcTriangle, dstTriangle, h);
     warpPerspective(src, after_transform, h, Size(src.size().width * 2, src.size().height * 2), INTER_LINEAR, BORDER_CONSTANT, Scalar(255, 255, 255));
     warpPerspective(gray_src, after_transform_gray, h, Size(src.size().width * 2, src.size().height * 2), INTER_LINEAR, BORDER_CONSTANT, Scalar(255, 255, 255));
     square_contour[0] = getTargetPoint(square_contour[0], h);
     // square_contour[0] = outputPoint;
 
-    imshow("after_transform", after_transform);
-    imshow("after_transform_gray", after_transform_gray);
+    // imshow("after_transform", after_transform);
+    // imshow("after_transform_gray", after_transform_gray);
     get_corner(after_transform_gray, after_transform);
 
     // 求透视变换投影回去的矩阵
@@ -423,7 +423,7 @@ void Minedetector::perspective_transformation(const vector<Point2f> &final_point
             p = getTargetPoint(p, h_inv);
         }
     }
-    imshow("src_inv", src_inv);
+    // imshow("src_inv", src_inv);
 
     // debug->show_img("after_transform", after_transform);
 }
@@ -458,7 +458,7 @@ void Minedetector::get_corner(Mat &gray_img, Mat &img)
         }
     }
     // find_anchor(img);
-    // imshow("debug", img);
+    // // imshow("debug", img);
     // waitKey(1);
 }
 
@@ -677,7 +677,7 @@ void Minedetector::draw_debug_ui(Mat &img, DebugUI &debug_ui)
     {
         putText(img, "Wrong!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255), 2, 5);
     }
-    imshow("debug_ui", img);
+    // imshow("[DEBUG_UI]", img);
     waitKey(1);
 }
 
@@ -688,7 +688,7 @@ void Minedetector::find_corner(Mat &img)
     vector<Point> max_corner_contour;
     cvtColor(img, gray_img, COLOR_BGR2GRAY);
     threshold(gray_img, gray_img, 160, 255, THRESH_BINARY);
-    imshow("threshold", gray_img);
+    // imshow("threshold", gray_img);
     vector<vector<Point>> contours;
     vector<Vec4i> hierarchy;
     findContours(gray_img, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE);
@@ -758,7 +758,7 @@ void Minedetector::find_corner(Mat &img)
         perspective_transformation(con_rect_points, gray_img, img);
     }
 
-    imshow("corner_img", img);
+    // imshow("corner_img", img);
     waitKey(1);
 }
 
@@ -766,7 +766,7 @@ void Minedetector::find_mine(Mat &img)
 {
     // Up Light
     enhance_img(img);
-    // imshow("enhance_img", img);
+    // // imshow("enhance_img", img);
     Mat mine_hsv, mine_binary;
     Mat corner_img = img.clone();
     Mat max_mine_binary = Mat::zeros(img.size(), CV_8UC1);
@@ -782,10 +782,10 @@ void Minedetector::find_mine(Mat &img)
     Mat hierary;
     // dilate(mine_binary, mine_binary, kernel);
     Canny(mine_binary, mine_canny, 150, 200);
-    imshow("mine_canny", mine_canny);
+    // imshow("mine_canny", mine_canny);
     waitKey(1);
     findContours(mine_binary, mine_contour, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-    // imshow("mine_binary", mine_binary);
+    // // imshow("mine_binary", mine_binary);
     // waitKey(1);
     for (auto &contour : mine_contour)
     {
@@ -802,13 +802,13 @@ void Minedetector::find_mine(Mat &img)
         kernel = getStructuringElement(MORPH_RECT, Size(7, 7));
         dilate(max_mine_binary, max_mine_binary, kernel);
         get_mine(corner_img, max_mine_binary);
-        imshow("corner_img", corner_img);
+        // imshow("corner_img", corner_img);
         find_corner(corner_img);
     }
     // for(auto& point: max_mine_contour){
     //     max_mine_binary.at<uchar>(point.x, point.y) = mine_binary.at<uchar>(point.x, point.y);
     // }
-    // imshow("max_mine_binary", max_mine_binary);
+    // // imshow("max_mine_binary", max_mine_binary);
     // waitKey(1);
     // convexHull(mine_binary, mine_hull);
     // return max_mine_binary;
@@ -833,7 +833,7 @@ void Minedetector::find_mine(Mat &img)
 //             line(res_img, anchor_point[0][i], anchor_point[0][(i + 1) % anchor_point[0].size()], Scalar(0, 0, 255), 2);
 //         }
 //     }
-//     imshow("res_img", res_img);
+//     // imshow("res_img", res_img);
 // }
 
 // Mat Minedetector::get_gold_mine(Mat &img, Mat &colorhist)
@@ -937,7 +937,7 @@ void Minedetector::find_mine(Mat &img)
 //     // cout<<"contours.size():"<<gold_mine_contours_2.size()<<endl;
 
 //     namedWindow("corner", WINDOW_NORMAL);
-//     imshow("corner", dst);
+//     // imshow("corner", dst);
 
 //     // for (int i = 0; i < gold_mine_contours_2.size(); i++)
 //     // {
@@ -980,7 +980,7 @@ void Minedetector::find_mine(Mat &img)
 
 //     }
 //     // namedWindow("corner", WINDOW_NORMAL);
-//     // imshow("corner", process);
+//     // // imshow("corner", process);
 //     int side_number = logo_R.size();
 //     return side_number;
 // }
@@ -1260,5 +1260,5 @@ void Minedetector::find_mine(Mat &img)
 //         cout << "img is empty" << endl;
 //     }
 //     else
-//         imshow("img_poly", img);
+//         // imshow("img_poly", img);
 // }

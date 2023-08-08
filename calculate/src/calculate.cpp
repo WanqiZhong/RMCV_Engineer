@@ -270,26 +270,26 @@ bool Calculator::CalculatePnpLight(vector<Point> Mine2D_int, Mat& canvas)
 
         Eigen::Vector3d eulerAngle2 = rotationMatrixToEulerAngles(R);
         eulerAngle2 = eulerAngle2 / M_PI * 180.0;
-        logger.info("[Cali] roll:{} pitch:{} yaw:{}",eulerAngle2[0],eulerAngle2[1],eulerAngle2[2]);
+        // logger.info("[Cali] roll:{} pitch:{} yaw:{}",eulerAngle2[0],eulerAngle2[1],eulerAngle2[2]);
 
         putText(canvas, format("roll:%.2f",eulerAngle2[0]), Point(0, 300), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2);
         putText(canvas, format("pitch:%.2f",eulerAngle2[1]), Point(0, 320), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2);
         putText(canvas, format("yaw:%.2f",eulerAngle2[2]), Point(0, 340), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 0, 255), 2);
 
         if(abs(eulerAngle2[0]) > 50){
-            logger.info("[ROLL ERROR]:{}",eulerAngle2[0]);
+            // logger.info("[ROLL ERROR]:{}",eulerAngle2[0]);
             return false;
         }
         putText(canvas, format("roll:%.2f",eulerAngle2[0]), Point(0, 300), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
 
         if(eulerAngle2[1] > 65 || eulerAngle2[1] < -15){
-            logger.info("[PITCH ERROR]:{}",eulerAngle2[1]);
+            // logger.info("[PITCH ERROR]:{}",eulerAngle2[1]);
             return false;
         }
         putText(canvas, format("pitch:%.2f",eulerAngle2[1]), Point(0, 320), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);
 
         if(abs(eulerAngle2[2]) > 95){
-            logger.info("[YAW ERROR]:{}",eulerAngle2[2]);
+            // logger.info("[YAW ERROR]:{}",eulerAngle2[2]);
             return false;
         }
         putText(canvas, format("yaw:%.2f",eulerAngle2[2]), Point(0, 340), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2);

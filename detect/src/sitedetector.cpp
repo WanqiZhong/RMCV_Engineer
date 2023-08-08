@@ -19,8 +19,7 @@ void Sitedetector::Detector_Run(Mat &img) {
     if(!anchor_point.empty()){
         reverse(anchor_point[0].begin(), anchor_point[0].end());
     }
-    waitKey(0);
-
+    // waitKey(0);
     // writeVideoRaw(img);
 }
 
@@ -48,7 +47,7 @@ void Sitedetector::find_corner(Mat &img)
     Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
     dilate(thresh_output, thresh_output, kernel);
 
-    imshow("[FIND_CORNER_AFT]", thresh_output);
+    // imshow("[FIND_CORNER_AFT]", thresh_output);
     findContours(thresh_output, corner_contours, corner_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
     for (int i = 0; i < corner_contours.size(); i++)
@@ -105,7 +104,7 @@ void Sitedetector::find_corner(Mat &img)
     }
 
     logger.info("corner_cnt:{}",corner_cnt);
-    imshow("[FIND_CORNER]", img);
+    // imshow("[FIND_CORNER]", img);
     waitKey(1);
 }
 
@@ -162,7 +161,7 @@ void Sitedetector::find_anchor(Mat &img)
         }
     }
     draw_debug_ui(img, debug_ui);
-    // imshow("debug_ui",img);
+    // // imshow("debug_ui",img);
 
 }
 
@@ -187,7 +186,7 @@ void Sitedetector::find_anchor(Mat &img)
 //         inRange(thresh_output, Scalar(0, 0, 100), Scalar(180, 255, 255), thresh_output); // red
 //     }
 
-//     imshow("[FIND_CORNER_AFT]", thresh_output);
+//     // imshow("[FIND_CORNER_AFT]", thresh_output);
 //     findContours(thresh_output, corner_contours, corner_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
 //     for (int i = 0; i < corner_contours.size(); i++)
@@ -269,7 +268,7 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
     min_corner_rec = 100000;
     for(auto & contour : four_station_contour){
         double area = contourArea(contour);
-        if (area < min_corner_rec && area > 60){
+        if (area < min_corner_rec && area > 30){
             min_corner_rec = area;
             min_contour = contour;
         }
@@ -281,7 +280,7 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
         // double area = contourArea(contour);
         RotatedRect rec = minAreaRect(contour);
         double area = float(rec.size.width) * float(rec.size.height);
-        if (area < min_corner_rec && area > 60)
+        if (area < min_corner_rec && area > 30)
         {
             min_rect = rec;
             square_contour.clear();
@@ -305,7 +304,7 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
     // logger.critical("min_rect.size.width:{}, min_rect.size.height:{}", min_rect.size.width, min_rect.size.height);
     
     // polylines(img, anchor_hull, true, Scalar(0, 255, 0), 2, 8, 0);
-    // imshow("[square_contour]", img);
+    // // imshow("[square_contour]", img);
     // waitKey(0);
 
 
@@ -403,12 +402,13 @@ void Sitedetector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
     }
     putText(img, "area:"+to_string(debug_ui.area), Point(0, 120), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
     putText(img, "rate:"+to_string(debug_ui.match_rate), Point(0, 150), FONT_HERSHEY_SIMPLEX, 0.7, Scalar(0, 255, 0), 2, 5);
-    calculator.CalculatePnpLight(anchor_point[0],img);
+    if(!anchor_point.empty())
+        calculator.CalculatePnpLight(anchor_point[0],img);
     if(debug_ui.right_flag){
         putText(img, "Right!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 255, 0), 2, 5);
     }else{
         putText(img, "Wrong!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255), 2, 5);
     }
-    imshow("[Debug_UI]", img);
+    // imshow("[DEBUG_UI]", img);
     waitKey(1);
 }

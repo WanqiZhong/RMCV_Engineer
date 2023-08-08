@@ -34,19 +34,20 @@ int main(int argc, char **argv)
 
 
     if(!param.image_log){  [[likely]]
+        Bridge bridge;
+        bridge.Run();
         Minenetdetector minenetdetector(param.detector_args.path2model_am, 0, 0);
         minenetdetector.Run();
         Detectormanager detect;
         detect.Run();
         Calculator calculate;
         calculate.Run();
-        Bridge bridge;
-        bridge.Run();
         Basecap->Join();
+        bridge.Join();
         minenetdetector.Join();
         detect.Join();
         calculate.Join();
-        bridge.Join();
+        
         while(param.get_run_mode() != HALT) {
             std::this_thread::sleep_for(3s);
         }

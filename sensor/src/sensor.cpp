@@ -25,7 +25,7 @@ void Sensor::Sensor_Run() {
 
     for(auto num: param.cap_set){
         UVC uvc(param.cam_map.at(num).c_str());
-        uvc.initUVC(param.exposure_time_mine);
+        uvc.initUVC(param.exposure_time_exchangesite);
         VideoCapture cap(param.cam_map.at(num), CAP_V4L);
         cap.set(CAP_PROP_FOURCC, param.codec);
         cap.set(CAP_PROP_FPS, param.frame_rate);
@@ -37,46 +37,44 @@ void Sensor::Sensor_Run() {
 
     initVideoRaw();
     setCamera(param.get_run_mode());
-    namedWindow("operator_img", cv::WINDOW_NORMAL);
-    resizeWindow("operator_img", 1200, 720);
-    moveWindow("operator_img", 0, 0);
 
     while (param.get_run_mode() != HALT)
     {
-        // logger.info("Vision Online!");
+        logger.info("Vision Online!");
         // Pop electric control data
         try {
             ecu_data_try = receive_sub.try_pop();
             if (ecu_data_try.first == true) {
                 ecu_data = ecu_data_try.second;
+                param.camp = ecu_data.camp;
                 logger.info("camp:{} mode:{}",ecu_data.camp, ecu_data.mode);
-            } else {
-                // ecu_data.view = param.operator_cam_index;
-                ecu_data.mode = param.default_mode;
-                // ecu_data.visual_flag = 1;
-                if(param.camp == -1){
-                    ecu_data.camp = 0;
-                }
-                else{
-                    ecu_data.camp = param.camp;
-                }
             }
-            
+            // } else {
+            //     logger.critical("Default");
+            //     ecu_data.mode = param.default_mode;
+            //     if(param.camp == -1){
+            //         ecu_data.camp = 0;
+            //     }else{
+            //         ecu_data.camp = param.camp;
+            //     }
+            // }
         } catch (exception e) {
             logger.warn("ECU_DATA reiceve error!");
         }
 
         // [DEBUG]
-        ecu_data.mode = param.default_mode;
-        param.camp = ecu_data.camp;
+        // ecu_data.mode = param.default_mode;
+        // setCamera(ecu_data.mode);
 
         // Set mode when ecu data changed
         if(param.get_run_mode() != ecu_data.mode){
             // 0 for gold mine, 1 for silver mine, 2 for exchange site, 3 for halt
             param.set_run_mode((MODE)ecu_data.mode);
+            setCamera((int)ecu_data.mode);
             logger.warn("Mode change to: {}", param.get_run_mode());
-            setCamera(ecu_data.mode);
         }
+
+        logger.warn("Mode: {}",param.get_run_mode());
 
         // Set camera index
         vision_cap = cap_map.at(param.vision_cam_index);
@@ -88,7 +86,7 @@ void Sensor::Sensor_Run() {
             if (!vision_img.empty()) {
                 writeImageRaw(index++, vision_img);
                 writeVideoRaw(vision_img);
-                imshow("vision_img", vision_img);
+                // imshow("vision_img", vision_img);
                 waitKey(1);
             }
             pub.push(vision_img.clone());

@@ -24,7 +24,7 @@ void Detector::Detect_Run()
         try{
             img = sub.pop();
             if(!img.empty()){
-                // imshow("pop_img",img);
+                // // imshow("pop_img",img);
                 // waitKey(1);
             }
             else{
@@ -78,7 +78,7 @@ void Detector::Detect_Run()
             }
             if(param.detector_need){
                 writeVideoRaw(img);
-                imshow("res_pic", img);
+                // imshow("res_pic", img);
                 // waitKey(1);
                 if (waitKey(1) == 's'){
                     writeImageRaw(shot_index++, img);
@@ -118,7 +118,7 @@ void Detector::img_light_enhance(Mat &img, Mat &img_hsv){
         // 三通道合并
         merge(hsv_channels, img);
         cvtColor(img, img, COLOR_HSV2BGR);  // 将HSV颜色空间转换为BGR颜色空间
-        imshow("enhance_before", img);
+        // imshow("enhance_before", img);
 
         cvtColor(img, img, COLOR_BGR2HSV);  // 将BGR颜色空间转换为HSV颜色空间
         inRange(img,Scalar(hmin,smin,vmin),Scalar(hmax,smax,vmax),color_mask);
@@ -182,7 +182,7 @@ void Detector::img_light_enhance(Mat &img, Mat &img_hsv){
         cout<<"aft_avg_v:"<<avg_v<<" "<<v_sum/10000<<endl;
 
         cvtColor(img, img, COLOR_HSV2BGR);  // 将HSV颜色空间转换为BGR颜色空间
-        imshow("enhance_after", img);
+        // imshow("enhance_after", img);
 
 
         cvtColor(img, img_hsv, COLOR_BGR2HSV);
@@ -205,7 +205,7 @@ void Detector::GoldMineDetect_Run(Mat &img)
 {
     find_gold_mine(img);
     get_gold_mine(img);
-    imshow("mine",img);
+    // imshow("mine",img);
 }
 
 void Detector::GoldMineDetect_Run2(Mat &img)
@@ -326,7 +326,7 @@ void Detector::process_gold_mine(const Mat& img,Scalar lower=Scalar(gold_hmin,go
     medianBlur(img_hsv,img_hsv,1);
     
     Mat img_Canny;
-    imshow("aft",img_hsv);
+    // imshow("aft",img_hsv);
     Canny(img_hsv,img_Canny,20,120);
 
     findContours(img_Canny,gold_mine_contours,gold_mine_hierarchy,RETR_TREE,CHAIN_APPROX_SIMPLE);
@@ -659,13 +659,13 @@ void Detector::get_gold_mine(Mat &img)
 //         }
 //     }
 //     // namedWindow("mine",WINDOW_NORMAL);
-//     // imshow("mine",output);
+//     // // imshow("mine",output);
 // }
 
 
 Mat Detector::get_gold_mine_2(Mat &img, Mat &colorhist)
 {
-    // imshow("get",img);
+    // // imshow("get",img);
     vector<vector<Point>> side_contours;
     vector<Vec4i> side_hierarchy;
     vector<vector<Point>> hull;
@@ -767,7 +767,7 @@ Mat Detector::process_img_corner(const Mat &img, int thresh, int maxval)
     // cout<<"contours.size():"<<gold_mine_contours_2.size()<<endl;
 
     namedWindow("corner", WINDOW_NORMAL);
-    imshow("corner", dst);
+    // imshow("corner", dst);
 
     // for (int i = 0; i < gold_mine_contours_2.size(); i++)
     // {
@@ -809,7 +809,7 @@ int Detector::find_R(vector<vector<Point>> &logo_R, Mat process)
         }
     }
     // namedWindow("corner", WINDOW_NORMAL);
-    // imshow("corner", process);
+    // // imshow("corner", process);
     int side_number = logo_R.size();
     return side_number;
 }
@@ -1084,12 +1084,6 @@ void Detector::draw_side(Mat img, vector<Point> side, Point square, int corner_n
         anchor_point.push_back(anchor_temp);
         polylines(img, poly, true, Scalar(255, 0, 0), 2, 8, 0);
     }
-    if (img.empty())
-    {
-        cout << "img is empty" << endl;
-    }
-    else
-        imshow("img_poly", img);
 }
 
 /* ====================================================================================== */
@@ -1179,7 +1173,7 @@ void Detector::process_white_corner(Mat &img, int thresh, int maxual, vector<vec
         }
     }
     // namedWindow("img",WINDOW_NORMAL);
-    // imshow("img",img);
+    // // imshow("img",img);
     // waitKey(0);
 }
 

@@ -20,7 +20,7 @@ void SitedetectorPro::Detector_Run(Mat &img) {
     //     reverse(anchor_point[0].begin(), anchor_point[0].end());
     // }
     // writeVideoRaw(img);
-    imshow("[EXCHANGE_SITE]", ori_img);
+    // imshow("[EXCHANGE_SITE]", ori_img);
     waitKey(1);
 }
 
@@ -49,7 +49,7 @@ void SitedetectorPro::find_four_corner(Mat &img)
     // kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
     // erode(morphologyEx_thresh, morphologyEx_thresh, kernel);
 
-    imshow("[FIND_CORNER_AFT]", morphologyEx_thresh);
+    // imshow("[FIND_CORNER_AFT]", morphologyEx_thresh);
     findContours(morphologyEx_thresh, corner_contours, corner_hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
     for (int i = 0; i < corner_contours.size(); i++)
@@ -96,7 +96,7 @@ void SitedetectorPro::find_four_corner(Mat &img)
 
         corner_cnt++;
     }
-    imshow("[LOW_DEBUG]", img);
+    // imshow("[LOW_DEBUG]", img);
 
     if (!corner_contours.empty()){
         // 得到最小面积角点（标志角点）的面积
@@ -284,7 +284,7 @@ void SitedetectorPro::get_anchor(Mat &img, DebugUI &debug_ui, int index){
     fillPoly(anchor_mask, debug_ui.poly, Scalar(255, 255, 255));
     thresh_output.copyTo(anchor_mask, anchor_mask);
 
-    imshow("[LAST]",anchor_mask);
+    // imshow("[LAST]",anchor_mask);
     waitKey(1);
 
     if(anchor_poly.size() != 4){
