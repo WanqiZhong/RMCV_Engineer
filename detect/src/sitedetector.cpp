@@ -19,6 +19,8 @@ void Sitedetector::Detector_Run(Mat &img) {
     if(!anchor_point.empty()){
         reverse(anchor_point[0].begin(), anchor_point[0].end());
     }
+    waitKey(0);
+
     // writeVideoRaw(img);
 }
 

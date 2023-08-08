@@ -26,7 +26,6 @@ int main(int argc, char **argv)
 
     shared_ptr<BaseCap> Basecap;
     if(param.image_log){
-        logger.critical("image read mode");
         Basecap = make_shared<Video>();
     }else{
         Basecap = make_shared<Sensor>();
@@ -34,25 +33,39 @@ int main(int argc, char **argv)
     Basecap->Run();
 
 
-    Minenetdetector minenetdetector(param.detector_args.path2model_am, 0, 0);
-    minenetdetector.Run();
-    Detectormanager detect;
-    detect.Run();
-    Calculator calculate;
-    calculate.Run();
-    Bridge bridge;
-    bridge.Run();
-
-    Basecap->Join();
-    minenetdetector.Join();
-    detect.Join();
-    calculate.Join();
-    bridge.Join();
-
-    while(param.get_run_mode() != HALT) {
-        std::this_thread::sleep_for(3s);
+    if(!param.image_log){  [[likely]]
+        Minenetdetector minenetdetector(param.detector_args.path2model_am, 0, 0);
+        minenetdetector.Run();
+        Detectormanager detect;
+        detect.Run();
+        Calculator calculate;
+        calculate.Run();
+        Bridge bridge;
+        bridge.Run();
+        Basecap->Join();
+        minenetdetector.Join();
+        detect.Join();
+        calculate.Join();
+        bridge.Join();
+        while(param.get_run_mode() != HALT) {
+            std::this_thread::sleep_for(3s);
+        }
+        cout<<"main end"<<endl;
+    }else{    [[unlikely]]
+        Detectormanager detect;
+        detect.Run();
+        Calculator calculate;
+        calculate.Run();
+        Bridge bridge;
+        bridge.Run();
+        Basecap->Join();
+        detect.Join();
+        calculate.Join();
+        bridge.Join();
+        while(param.get_run_mode() != HALT) {
+            std::this_thread::sleep_for(3s);
+        }
+        cout<<"main end"<<endl;
     }
-    cout<<"main end"<<endl;
-
     return 0;
 }

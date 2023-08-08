@@ -29,7 +29,7 @@ void Video::Video_Run() {
         vision_cap.set(CAP_PROP_FRAME_HEIGHT, param.frame_height);
     }
 
-    param.set_run_mode((MODE)(0));
+    param.set_run_mode((MODE)(param.default_mode));
 
     while (param.get_run_mode() != HALT){
         if(param.image_read){
