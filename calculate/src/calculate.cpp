@@ -261,7 +261,7 @@ bool Calculator::CalculatePnpLight(vector<Point> Mine2D_int, Mat& canvas)
     Eigen::Matrix<double, 3, 1> T;
         
     try{
-        solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec,false,SOLVEPNP_IPPE);
+        solvePnP(Mine3D,Mine2D,CameraMatrix,DistCoeffs,rvec,tvec);
 
         cv::cv2eigen(tvec, T);
         rvec = final_Rvec * rvec;
