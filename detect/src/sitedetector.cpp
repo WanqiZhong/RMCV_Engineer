@@ -280,7 +280,7 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
         // double area = contourArea(contour);
         RotatedRect rec = minAreaRect(contour);
         double area = float(rec.size.width) * float(rec.size.height);
-        if (area < min_corner_rec && area > 30)
+        if (area < min_corner_rec)
         {
             min_rect = rec;
             square_contour.clear();
@@ -352,7 +352,6 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
         return;
     }
 
-
     polylines(img, anchor_poly, true, Scalar(255, 0, 0), 2, 8, 0);
     putText(img, "match_rate:"+to_string(poly_area / res_area), anchor_poly[min_index] , FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 255, 0), 2, 5);
 
@@ -381,7 +380,7 @@ void Sitedetector::get_anchor(Mat &img, const vector<Point>& four_station_contou
                 debug_ui.small_square_point.push_back(contour[0]);
             }
         }
-        if(debug_ui.match_rate < 0.65){
+        if(debug_ui.match_rate < 0.60){
             anchor_point.clear();
             debug_ui.right_flag = false;
         }else{
