@@ -51,9 +51,9 @@ video_prefix = "logs/video"
 
 # Video
 [video]
-image_log = true
-image_read = false
-image_path = "benchmark/2.mp4"
-
+image_log = true  # true for replaying, false for real-time
+image_read = false  # true for image, false for video
+image_path = "benchmark/2.mp4" # path to image or video, the path is [relative] to the root of the project
+# e.g. ~/Documents/EngineeringCV/benchmark/2.mp4 can be written as benchmark/2.mp4
 
 

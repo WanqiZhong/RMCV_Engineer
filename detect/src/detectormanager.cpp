@@ -1,8 +1,8 @@
 #include "detectormanager.hpp"
 #include "sitedetector.hpp"
 #include "sitedetectorpro.hpp"
-#include "minenetdetector.hpp"
-#include "minedetector.hpp"
+// #include "minenetdetector.hpp"
+// #include "minedetector.hpp"
 
 void Detectormanager::Run()
 {
@@ -33,9 +33,9 @@ void Detectormanager::Manager_Run()
                         case ExchangeSiteMode:
                             detector = make_shared<Sitedetector>();
                             break;
-                        case GoldMode:
-                            detector = make_shared<Minedetector>();
-                            break;
+                        // case GoldMode:
+                            // detector = make_shared<Minedetector>();
+                            // break;
                         default:
                             detector = make_shared<Sitedetector>();
                             break;
@@ -55,7 +55,7 @@ void Detectormanager::Manager_Run()
             }
         }
     }else{ [[likely]]
-        umt::Subscriber<cv::Mat> sub("channel1");
+        umt::Subscriber<cv::Mat> sub("channel0");
         umt::Publisher<MINE_POSITION_MSG> anchor_pub("anchor_point_data");
         while(param.get_run_mode()!=HALT)
         {
@@ -68,9 +68,9 @@ void Detectormanager::Manager_Run()
                         case ExchangeSiteMode:
                             detector = make_shared<Sitedetector>();
                             break;
-                        case GoldMode:
-                            detector = make_shared<Minedetector>();
-                            break;
+                        // case GoldMode:
+                            // detector = make_shared<Minedetector>();
+                            // break;
                         default:
                             detector = make_shared<Sitedetector>();
                             break;

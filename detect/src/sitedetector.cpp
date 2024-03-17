@@ -14,7 +14,6 @@ void Sitedetector::Detector_Run(Mat &img) {
         logger.warn("ExchangeSite_Run can't find normal corner");
     }else{
         find_anchor(ori_img);
-        
     }
     if(!anchor_point.empty()){
         reverse(anchor_point[0].begin(), anchor_point[0].end());
@@ -104,7 +103,7 @@ void Sitedetector::find_corner(Mat &img)
     }
 
     logger.info("corner_cnt:{}",corner_cnt);
-    // imshow("[FIND_CORNER]", img);
+    imshow("[FIND_CORNER]", img);
     waitKey(1);
 }
 
@@ -408,6 +407,6 @@ void Sitedetector::draw_debug_ui(Mat &img, DebugUI &debug_ui){
     }else{
         putText(img, "Wrong!", Point(0, 250), FONT_HERSHEY_SIMPLEX, 2, Scalar(0, 0, 255), 2, 5);
     }
-    // imshow("[DEBUG_UI]", img);
+    imshow("[DEBUG_UI]", img);
     waitKey(1);
 }

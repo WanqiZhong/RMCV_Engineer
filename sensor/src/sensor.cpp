@@ -84,10 +84,10 @@ void Sensor::Sensor_Run() {
         } else {
             vision_cap >> vision_img;
             if (!vision_img.empty()) {
-                pub.push(EG_HEART_BEAT{});
+                // pub.push(EG_HEART_BEAT{});
                 writeImageRaw(index++, vision_img);
                 writeVideoRaw(vision_img);
-                // imshow("vision_img", vision_img);
+                imshow("vision_img", vision_img);
                 waitKey(1);
             }
             pub.push(vision_img.clone());

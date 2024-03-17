@@ -1,7 +1,7 @@
 #include "cstdlib"
 //#include "detector.hpp"
 #include "detectormanager.hpp"
-#include "minenetdetector.hpp"
+// #include "minenetdetector.hpp"
 #include "args.hpp"
 #include "umt.hpp"
 #include "log.hpp"
@@ -43,19 +43,19 @@ int main(int argc, char **argv)
         Basecap = make_shared<Sensor>();
     }
     Basecap->Run();
-    std::thread(check).detach();
+    // std::thread(check).detach();
     if(!param.image_log){
         Bridge bridge;
         bridge.Run();
-        Minenetdetector minenetdetector(param.detector_args.path2model_am, 0, 0);
-        minenetdetector.Run();
+        // Minenetdetector minenetdetector(param.detector_args.path2model_am, 0, 0);
+        // minenetdetector.Run();
         Detectormanager detect;
         detect.Run();
         Calculator calculate;
         calculate.Run();
         Basecap->Join();
         bridge.Join();
-        minenetdetector.Join();
+        // minenetdetector.Join();
         detect.Join();
         calculate.Join();
 
