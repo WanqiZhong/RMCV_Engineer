@@ -18,6 +18,18 @@
 using namespace cv;
 
 
+void check(){
+    umt::Subscriber<EG_HEART_BEAT> sub("check");
+    while(true){
+        auto result = sub.try_pop(10000);
+        if(!result.first) {
+            Logger("CHECK").critical("HB timeout");
+            std::terminate();
+        }
+        Logger("CHECK").info("HB received");
+    }
+}
+
 int main(int argc, char **argv)
 {
     Logger logger("main");
@@ -31,9 +43,8 @@ int main(int argc, char **argv)
         Basecap = make_shared<Sensor>();
     }
     Basecap->Run();
-
-
-    if(!param.image_log){  [[likely]]
+    std::thread(check).detach();
+    if(!param.image_log){
         Bridge bridge;
         bridge.Run();
         Minenetdetector minenetdetector(param.detector_args.path2model_am, 0, 0);
@@ -47,12 +58,13 @@ int main(int argc, char **argv)
         minenetdetector.Join();
         detect.Join();
         calculate.Join();
+
         
         while(param.get_run_mode() != HALT) {
             std::this_thread::sleep_for(3s);
         }
         cout<<"main end"<<endl;
-    }else{    [[unlikely]]
+    }else{  
         Detectormanager detect;
         detect.Run();
         Calculator calculate;

@@ -122,13 +122,16 @@ namespace umt{
             return temp;
         }
         
-        std::pair<bool, T> try_pop(){
+        std::pair<bool, T> try_pop(int timeout=-1){
             if(!ptr_msg_) {
                 throw MessageError_Nomsg();
             }
 
             std::unique_lock<std::mutex> lock(mtx_);
-            bool status = cv_.wait_for(lock, std::chrono::milliseconds(10), [this]() {
+            if(timeout < 0) {
+                timeout = 10;
+            }
+            bool status = cv_.wait_for(lock, std::chrono::milliseconds(timeout), [this]() {
                 return !fifo_.empty();
             });
 

@@ -21,7 +21,7 @@ void Sensor::Sensor_Run() {
     pair<bool, IMU_DATA_MSG> ecu_data_try;
     umt::Publisher<cv::Mat> pub("channel0");
     umt::Subscriber<IMU_DATA_MSG> receive_sub("Electric_Data");
-
+    umt::Publisher<EG_HEART_BEAT> hb_pub("check");
 
     for(auto num: param.cap_set){
         UVC uvc(param.cam_map.at(num).c_str());
@@ -84,6 +84,7 @@ void Sensor::Sensor_Run() {
         } else {
             vision_cap >> vision_img;
             if (!vision_img.empty()) {
+                pub.push(EG_HEART_BEAT{});
                 writeImageRaw(index++, vision_img);
                 writeVideoRaw(vision_img);
                 // imshow("vision_img", vision_img);

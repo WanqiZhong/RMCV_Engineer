@@ -39,7 +39,6 @@ enum MODE // 运行模式
     Unknown,  // 未知
 };
 
-
 #pragma pack(1)
 struct pure_IMU{
     float roll,pitch,yaw;
@@ -92,6 +91,11 @@ struct CONTROL_CMD
 
 class HaltEvent: std::exception // 停机事件
 { };
+
+
+struct EG_HEART_BEAT{
+
+};
 
 // Watch Dog Heartbeat
 struct HEART_BEAT

@@ -51,7 +51,7 @@ video_prefix = "logs/video"
 
 # Video
 [video]
-image_log = false
+image_log = true
 image_read = false
 image_path = "benchmark/2.mp4"
 

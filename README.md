@@ -83,7 +83,7 @@
 
    修改 config.toml 中的参数以使用回放模式
    ```
-   image_log = true # true 内录模式 false 相机模式
+   image_log = true # true 内录模式 false USB相机模式
    image_read = false  # true 为图片回放 false 为视频内录回放
    image_path = "benchmark/B1.mp4" 
    # 以EngineeringCV根目录开始的视频内录或图像路径，如/home/ubuntu/EngineeringCV/benchmark/B1.mp4,写作如上
